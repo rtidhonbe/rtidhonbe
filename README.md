@@ -106,7 +106,7 @@ rtidhonbe/
 
 rti dhonbe is designed with security as a priority. See the FAQ on the [live site](https://rtidhonbe.com) for user-facing security information.
 
-If you find a security vulnerability, please report it to **rtidhonbe@proton.me** rather than opening a public issue.
+If you find a security vulnerability, please report it to **rtidhonbe@proton.me**.
 
 ## Disclaimer
 
