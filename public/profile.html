@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+  <title>profiles</title>
+  <link rel="stylesheet" href="/profile.css">
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <div class="logo" style="font-size:14px;margin-bottom:12px">saved profiles</div>
+    <button class="btn-back" id="btn-back" style="display:none" title="back">×</button>
+  </div>
+  <div class="preset-list" id="preset-list"></div>
+
+  <hr class="divider">
+  <div class="logo" style="font-size:14px;margin-bottom:16px">add new profile</div>
+
+  <div class="field">
+    <div class="field-label-row">
+      <label>profile_name</label>
+      <span class="field-error" id="err-label"></span>
+    </div>
+    <input type="text" id="f-label" autocomplete="off">
+    <div class="hint">short nickname to identify this profile</div>
+  </div>
+  <div class="field">
+    <div class="field-label-row">
+      <label>full_name</label>
+      <span class="field-error" id="err-name"></span>
+    </div>
+    <input type="text" id="f-name" autocomplete="off">
+  </div>
+  <div class="field">
+    <div class="field-label-row">
+      <label>phone</label>
+      <span class="field-error" id="err-phone"></span>
+    </div>
+    <input type="text" id="f-phone" inputmode="numeric" maxlength="7" autocomplete="off">
+  </div>
+  <div class="field">
+    <div class="field-label-row">
+      <label>address</label>
+      <span class="field-error" id="err-address"></span>
+    </div>
+    <input type="text" id="f-address" autocomplete="off">
+  </div>
+
+  <button class="btn" id="save-btn" disabled>[ save_and_use ]</button>
+  <button class="btn btn-ghost" id="skip-btn" style="display:none">[ continue_with_selected ]</button>
+  <button class="btn btn-guest" id="guest-btn" style="display:none">[ enter_as_guest ]</button>
+</div>
+
+<script src="/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rti dhonbe — beta</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+  <link rel="stylesheet" href="/login.css">
+</head>
+<body>
+<div class="card">
+  <div class="logo">rti dhonbe</div>
+  <div class="sub" style="margin-bottom:24px;">this site is currently in private beta.</div>
+  <form id="beta-form" action="/beta" method="post" autocomplete="off">
+    <label>access code</label>
+    <input type="password" id="code" name="code" placeholder="••••••••" autocomplete="new-password">
+    <button class="btn" type="submit">[ enter ]</button>
+  </form>
+  <div class="error" id="error"></div>
+</div>
+<script src="/beta.js"></script>
+</body>
+</html>

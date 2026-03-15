@@ -1,0 +1,76 @@
+    :root {
+      --bg:         #080c08;
+      --surface:    #0d120d;
+      --border:     #1a2a1a;
+      --border2:    #243a24;
+      --green:      #00cc55;
+      --green-dim:  #005522;
+      --green-glow: rgba(0,204,85,.35);
+      --green-glow2:rgba(0,204,85,.15);
+      --text:       #c8ecc8;
+      --text-muted: #4a724a;
+      --text-dim:   #2a4a2a;
+      --red:        #ff4455;
+    }
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      animation: fadeIn .3s ease;
+    }
+    body.fading-out { animation: fadeOut .25s ease forwards; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 6px; padding: 36px 40px; width: 380px; max-width: calc(100vw - 32px);
+      box-shadow: 0 0 40px rgba(0,204,85,.08);
+    }
+    @media (max-width: 600px) {
+      body { height: 100dvh; overflow: hidden; align-items: center; }
+      .card { padding: 22px 20px; }
+      .sub { margin-bottom: 2px !important; }
+      input { padding: 8px 10px; margin-bottom: 13px; }
+      .btn { padding: 9px; }
+    }
+    .logo {
+      font-size: 20px; font-weight: 700; color: var(--green);
+      text-shadow: 0 0 12px var(--green-glow); margin-bottom: 6px; letter-spacing: 1px;
+    }
+    .logo span { color: var(--text-muted); }
+    .sub { font-size: 11px; color: var(--text-muted); margin-bottom: 28px; }
+    label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+    input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 3px; padding: 9px 12px; font-size: 13px;
+      font-family: inherit; color: var(--text); outline: none;
+      margin-bottom: 18px; transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus { border-color: var(--green); box-shadow: 0 0 8px var(--green-glow2); }
+    input::placeholder { color: var(--text-dim); }
+    input[type=checkbox] {
+      appearance: none; -webkit-appearance: none;
+      width: 13px; height: 13px; flex-shrink: 0;
+      background: #1a2a1a; border: 1px solid var(--border2);
+      border-radius: 2px; position: relative; cursor: pointer;
+      transition: all .15s; padding: 0; margin-bottom: 0;
+    }
+    input[type=checkbox]:checked { background: var(--green-dim); border-color: var(--green); box-shadow: 0 0 5px var(--green-glow2); }
+    input[type=checkbox]:checked::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; color: var(--green); font-weight: 700; line-height: 1; }
+    .btn {
+      width: 100%; padding: 10px; border: 1px solid var(--green);
+      background: var(--green-dim); color: var(--green);
+      border-radius: 3px; font-size: 12px; font-weight: 700;
+      font-family: inherit; letter-spacing: .5px; text-transform: uppercase;
+      cursor: pointer; transition: all .15s;
+      box-shadow: 0 0 10px var(--green-glow2);
+    }
+    .btn:hover { background: rgba(0,204,85,.2); box-shadow: 0 0 16px var(--green-glow); }
+    .btn:disabled { opacity: .3; cursor: not-allowed; }
+    .error { color: var(--red); font-size: 11px; margin-top: 12px; display: none; }
+
+    /* ── Create account link hover (replaces inline onmouseover) ── */
+    .create-link:hover { text-decoration: underline; }

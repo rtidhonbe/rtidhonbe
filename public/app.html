@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rti dhonbe</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-logo">rti dhonbe</div>
+  <div class="header-right">
+    <span id="user-email"></span>
+    <button class="btn-disconnect" id="logout-btn">[ logout ]</button>
+  </div>
+</header>
+
+<!-- Tab bar -->
+<nav class="tab-bar">
+  <button class="tab active" data-tab="compose">compose</button>
+  <button class="tab" data-tab="requests">my requests</button>
+  <button class="tab" data-tab="contact">faq</button>
+</nav>
+
+<!-- Compose view -->
+<div id="view-compose" class="view">
+  <main>
+    <!-- LEFT: RTI writer -->
+    <div class="panel">
+      <div class="panel-head">
+        <p id="compose-hint">Use <code>{{RECIPIENT_NAME}}</code> to insert institution name. Add custom vars like <code>{{YEAR}}</code> — set a value below.</p>
+      </div>
+      <div class="panel-body">
+        <!-- Profile preset selector -->
+        <div class="preset-bar" id="preset-bar"></div>
+        <div id="preset-detail" class="preset-detail-panel" style="display:none"></div>
+
+        <textarea id="rti-body" placeholder="write your RTI here"></textarea>
+
+        <div class="vars-wrap" id="vars-wrap"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Recipient selector -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>recipients</h2>
+        <p id="inst-meta">loading...</p>
+      </div>
+      <div class="panel-body">
+        <div class="search-wrap">
+          <input class="search-input" id="search" placeholder="search institutions..." type="text" autocomplete="off">
+        </div>
+        <div class="quick-btns">
+          <button class="qbtn" id="btn-all">select_all</button>
+          <button class="qbtn" id="btn-none">clear</button>
+          <button class="qbtn" id="btn-filtered">select_filtered</button>
+        </div>
+        <div class="sel-count" id="sel-count"></div>
+        <div class="inst-list" id="inst-list"><div class="empty-msg">loading...</div></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-stat"><strong id="f-count">0</strong> selected</div>
+    <div class="footer-mid">
+      <button class="btn btn-primary" id="btn-send" disabled>send_rtis</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Requests view -->
+<div id="view-requests" class="view" style="display:none">
+  <div class="req-toolbar">
+    <div class="req-filters" id="req-filters">
+      <button class="filter-btn active" data-filter="all">all</button>
+      <button class="filter-btn" data-filter="open">submitted</button>
+      <button class="filter-btn" data-filter="pending">accepted</button>
+      <button class="filter-btn" data-filter="processed">processed</button>
+      <button class="filter-btn" data-filter="rejected">revise</button>
+      <button class="filter-btn" data-filter="closed">closed</button>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <input class="search-input" id="req-search" placeholder="search rti messages..." type="text" autocomplete="off" style="width:220px;padding:5px 10px;font-size:11px">
+      <button class="btn btn-ghost btn-sm" id="btn-refresh">refresh</button>
+    </div>
+  </div>
+  <div class="req-table-wrap">
+    <div id="req-state">loading...</div>
+    <table class="req-table" id="req-table" style="display:none">
+      <thead>
+        <tr>
+          <th style="width:36px;color:var(--text-dim);text-align:right;padding-right:6px">#</th>
+          <th style="width:36px"></th>
+          <th>Institution</th>
+          <th><span class="th-long">Date Submitted</span><span class="th-short">Date</span></th>
+          <th>Profile</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="req-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FAQ view -->
+<div id="view-contact" class="view" style="display:none">
+  <div class="faq-wrap">
+
+    <div class="faq-heading">frequently asked questions</div>
+
+    <div class="faq-card">
+      <div class="faq-q">is rti dhonbe affiliated with the Maldives government or Mahoali?</div>
+      <div class="faq-a"><span class="faq-no">no.</span> rti dhonbe is a completely independent tool. it is not affiliated with, endorsed by, or associated with ICOM or any government body. it is an independent third-party service built to make filing RTI requests easier for everyone.</div>
+    </div>
+
+    <div class="faq-card">
+      <div class="faq-q">do you store my Mahoali password?</div>
+      <div class="faq-a"><span class="faq-no">no.</span> your password is used once to sign you into your Mahoali account, and is immediately discarded after. it is never saved anywhere on our side.</div>
+    </div>
+
+    <div class="faq-card">
+      <div class="faq-q">do you store my Mahoali account details?</div>
+      <div class="faq-a"><span class="faq-no">no.</span> once you sign in, Mahoali gives rti dhonbe a temporary access pass that lasts for your session. your username and password are never saved. when you log out or your session expires, that access pass is gone.</div>
+    </div>
+
+    <div class="faq-card">
+      <div class="faq-q">do you store my RTI messages?</div>
+      <div class="faq-a"><span class="faq-no">no.</span> your RTI message is sent directly to the government institution through Mahoali and is not saved by rti dhonbe. once it is submitted, it only exists on the government's systems — not ours.</div>
+    </div>
+
+    <div class="faq-card">
+      <div class="faq-q">what information does rti dhonbe actually save?</div>
+      <div class="faq-a">only the minimum needed to make the app work. your saved profiles are stored on a secure server so you do not have to type them every time. a count of how many RTIs were sent to each institution is logged with no personal information attached.</div>
+    </div>
+
+    <div class="faq-contact">
+      <div class="faq-contact-label">still have questions?</div>
+      <div class="faq-contact-email">rtidhonbe@proton.me</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Progress modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="m-title">sending...</h2>
+      <p id="m-sub"></p>
+    </div>
+    <div class="modal-body">
+      <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">total</div></div>
+        <div class="stat-box"><div class="stat-num g" id="s-sent">0</div><div class="stat-lbl">sent</div></div>
+        <div class="stat-box"><div class="stat-num r" id="s-failed">0</div><div class="stat-lbl">failed</div></div>
+      </div>
+      <div class="log-list" id="m-log"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-close" style="display:none">close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Logout confirm overlay -->
+<div id="logout-overlay" style="
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center;
+">
+  <div style="
+    background:#0d120d; border:1px solid #243a24; border-radius:6px;
+    padding:28px 32px; max-width:320px; width:90%;
+    box-shadow:0 0 40px rgba(0,204,85,.12);
+    font-family:'SF Mono','Fira Code','Consolas',monospace;
+    animation:fadeIn .2s ease;
+  ">
+    <div style="font-size:13px; color:#c8ecc8; margin-bottom:6px; font-weight:700;">sign out?</div>
+    <div style="font-size:11px; color:#4a724a; margin-bottom:22px;">your session will end and you'll need to sign in again.</div>
+    <div style="display:flex; gap:10px;">
+      <button id="logout-cancel" style="
+        flex:1; padding:9px; border:1px solid #243a24; background:transparent;
+        color:#4a724a; border-radius:3px; font-size:11px; font-weight:700;
+        font-family:inherit; letter-spacing:.5px; text-transform:uppercase; cursor:pointer;
+        transition:all .15s;
+      ">cancel</button>
+      <button id="logout-confirm" style="
+        flex:1; padding:9px; border:1px solid #ff4455; background:rgba(255,68,85,.08);
+        color:#ff4455; border-radius:3px; font-size:11px; font-weight:700;
+        font-family:inherit; letter-spacing:.5px; text-transform:uppercase; cursor:pointer;
+        transition:all .15s;
+      ">sign out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile modal -->
+<div id="profile-modal-overlay">
+  <div class="profile-modal-card">
+    <div class="pm-header">
+      <div class="pm-logo">saved profiles</div>
+      <button class="pm-close" id="pm-close">×</button>
+    </div>
+    <div class="pm-preset-list" id="pm-preset-list"></div>
+    <hr class="pm-divider">
+    <div class="pm-logo" style="margin-bottom:16px">add new profile</div>
+    <div class="pm-field">
+      <div class="pm-field-row">
+        <label class="pm-label">profile_name</label>
+        <span class="pm-err" id="pm-err-label"></span>
+      </div>
+      <input type="text" id="pm-f-label" autocomplete="off">
+      <div class="pm-hint">short nickname to identify this profile</div>
+    </div>
+    <div class="pm-field">
+      <div class="pm-field-row">
+        <label class="pm-label">full_name</label>
+        <span class="pm-err" id="pm-err-name"></span>
+      </div>
+      <input type="text" id="pm-f-name" autocomplete="off">
+    </div>
+    <div class="pm-field">
+      <div class="pm-field-row">
+        <label class="pm-label">phone</label>
+        <span class="pm-err" id="pm-err-phone"></span>
+      </div>
+      <input type="text" id="pm-f-phone" inputmode="numeric" maxlength="7" autocomplete="off">
+    </div>
+    <div class="pm-field">
+      <div class="pm-field-row">
+        <label class="pm-label">address</label>
+        <span class="pm-err" id="pm-err-address"></span>
+      </div>
+      <input type="text" id="pm-f-address" autocomplete="off">
+    </div>
+    <button class="pm-btn" id="pm-save-btn" disabled>[ save_and_use ]</button>
+    <button class="pm-btn-ghost" id="pm-done-btn" style="display:none">[ done ]</button>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

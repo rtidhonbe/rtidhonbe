@@ -1,0 +1,105 @@
+    :root {
+      --bg:         #080c08;
+      --surface:    #0d120d;
+      --surface2:   #111811;
+      --border:     #1a2a1a;
+      --border2:    #243a24;
+      --green:      #00cc55;
+      --green-dim:  #005522;
+      --green-glow: rgba(0,204,85,.35);
+      --green-glow2:rgba(0,204,85,.15);
+      --text:       #c8ecc8;
+      --text-muted: #4a724a;
+      --text-dim:   #2a4a2a;
+      --red:        #ff4455;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+      visibility: hidden;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 6px; padding: 36px 40px; width: 100%; max-width: 460px;
+      box-shadow: 0 0 40px rgba(0,204,85,.08);
+    }
+    .logo { font-size: 18px; font-weight: 700; color: var(--green);
+      text-shadow: 0 0 12px var(--green-glow); margin-bottom: 20px; }
+
+    .section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px;
+    }
+
+    /* Existing presets */
+    .preset-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .preset-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border: 1px solid var(--border2);
+      border-radius: 4px; cursor: pointer; transition: all .15s;
+      background: var(--surface2);
+    }
+    .preset-item:hover { border-color: var(--green); }
+    .preset-item.active { border-color: var(--green); background: rgba(0,204,85,.06); }
+    .preset-name { font-size: 12px; font-weight: 700; color: var(--green); width: 80px; flex-shrink: 0; }
+    .preset-detail { font-size: 11px; color: var(--text-muted); flex: 1; }
+    .active-badge {
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+      background: rgba(0,204,85,.15); color: var(--green); padding: 2px 7px;
+      border-radius: 10px; border: 1px solid var(--green-dim);
+    }
+    .preset-del { background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 15px; padding: 0 4px; line-height: 1; font-family: inherit; }
+    .preset-del:hover { color: var(--red); }
+    .empty-msg { font-size: 11px; color: var(--text-dim); padding: 10px 0; font-style: italic; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* Form */
+    .field { margin-bottom: 16px; }
+    .field-label-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+    label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); }
+    .field-error { font-size: 10px; color: var(--red); font-weight: 600; min-height: 12px; }
+    input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 3px; padding: 9px 12px; font-size: 13px;
+      font-family: inherit; color: var(--text); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus { border-color: var(--green); box-shadow: 0 0 8px var(--green-glow2); }
+    input::placeholder { color: var(--text-dim); }
+    .hint { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+    .btn {
+      width: 100%; padding: 10px; border: 1px solid var(--green);
+      background: var(--green-dim); color: var(--green);
+      border-radius: 3px; font-size: 12px; font-weight: 700;
+      font-family: inherit; letter-spacing: .5px; text-transform: uppercase;
+      cursor: pointer; transition: all .15s; box-shadow: 0 0 10px var(--green-glow2);
+    }
+    .btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; box-shadow: none; }
+    .btn:not(:disabled):hover { background: rgba(0,204,85,.2); box-shadow: 0 0 16px var(--green-glow); }
+    .btn-ghost {
+      background: transparent; color: var(--green);
+      border: 1px solid var(--green-dim); box-shadow: none; margin-top: 8px;
+    }
+    .btn-ghost:hover { border-color: var(--green); box-shadow: 0 0 10px var(--green-glow2); }
+    .btn-guest {
+      background: transparent; color: #667766;
+      border: 1.5px dashed #3a4a3a; box-shadow: none; margin-top: 8px;
+    }
+    .btn-guest:hover { border-color: #667766; color: #99aa99; }
+    .error { color: var(--red); font-size: 11px; margin-top: 10px; display: none; }
+
+    .card-header { position: relative; margin-bottom: 4px; }
+    .btn-back {
+      position: absolute; top: 0; right: 0;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 18px; line-height: 1;
+      padding: 0 2px; font-family: inherit;
+      transition: color .15s;
+    }
+    .btn-back:hover { color: var(--red); }

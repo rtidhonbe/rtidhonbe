@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rti dhonbe</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+  <link rel="stylesheet" href="/login.css">
+</head>
+<body>
+<div class="card">
+  <div class="logo">rti dhonbe</div>
+  <div class="sub" style="margin-bottom:4px;">sign in with your mahoali account</div>
+  <div class="sub" style="margin-top:4px;">don't have one? <a href="https://icom.mv/portal/login" target="_blank" rel="noopener noreferrer" class="create-link" style="color:var(--green);text-decoration:none;">create one here ↗</a></div>
+  <form id="login-form" action="/api/auth/login" method="post" autocomplete="on">
+  <label style="margin-top:20px;">email</label>
+  <input type="email" id="email" placeholder="you@example.com" autocomplete="username">
+  <label>password</label>
+  <input type="password" id="password" autocomplete="current-password">
+  <label id="remember-label" style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer; text-transform:none; letter-spacing:0; font-size:11px; font-weight:400;">
+    <input type="checkbox" id="remember">
+    keep me signed in
+  </label>
+  <button class="btn" id="btn" type="submit">[ sign_in ]</button>
+  <div class="error" id="error"></div>
+  </form>
+  <div style="font-size:10px; color:var(--text-dim); margin-top:18px; line-height:1.5;">* rti dhonbe is not affiliated with, endorsed by, or associated with ICOM or the Maldives government.</div>
+</div>
+<script src="/login.js"></script>
+</body>
+</html>
