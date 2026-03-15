@@ -1,34 +1,34 @@
 # rti dhonbe
 
-Free, open-source tool for filing Right to Information requests in the Maldives via the [ICOM Mahoali](https://icom.mv) portal.
+free, open-source tool for filing Right to Information requests in the Maldives via the [ICOM Mahoali](https://icom.mv) portal.
 
-Built for citizens, journalists, and civil society organisations who use RTI regularly.
+built for citizens, journalists, and civil society organisations who use RTI regularly.
 
-## Features
+## features
 
-- **Saved profiles** -- store your name, phone, and address so every request is pre-filled and ready to send in seconds
-- **Bulk RTI** -- send the same request to multiple government institutions at once
-- **Request tracking** -- view all your submitted requests and their status in one place, pulled live from ICOM
-- **Guest mode** -- file one-time requests without creating a profile
-- **Template variables** -- use `{{RECIPIENT_NAME}}` and custom placeholders to personalise requests per institution
+- **saved profiles** -- store your name, phone, and address so every request is pre-filled and ready to send in seconds
+- **bulk RTI** -- send the same request to multiple government institutions at once
+- **request tracking** -- view all your submitted requests and their status in one place, pulled live from ICOM
+- **guest mode** -- file one-time requests without creating a profile
+- **template variables** -- use `{{RECIPIENT_NAME}}` and custom placeholders to personalise requests per institution
 
-## How it works
+## how it works
 
 rti dhonbe acts as a frontend to the ICOM Mahoali portal. You sign in with your existing Mahoali account -- no separate registration required. Your requests are submitted directly to ICOM on your behalf.
 
-- No RTI message content is stored
-- No passwords are stored -- only the session token, which expires automatically
-- Saved profiles are stored server-side in a SQLite database
-- A count of RTIs sent per institution is logged anonymously -- no personal data attached
+- no RTI message content is stored
+- no passwords are stored -- only the session token, which expires automatically
+- saved profiles are stored server-side in a SQLite database
+- a count of RTIs sent per institution is logged anonymously -- no personal data attached
 
-## Setup
+## setup
 
-### Prerequisites
+### prerequisites
 
-- Node.js 18+
+- node.js 18+
 - npm
 
-### Install
+### install
 
 ```bash
 git clone https://github.com/rtidhonbe/rtidhonbe.git
@@ -57,19 +57,19 @@ npm run dev
 npm start
 ```
 
-The app runs on `http://localhost:3000` by default.
+the app runs on `http://localhost:3000` by default.
 
-### Production deployment
+### production deployment
 
-For production, place the app behind a reverse proxy (nginx) with HTTPS. The app includes:
+for production, place the app behind a reverse proxy (nginx) with HTTPS. The app includes:
 
-- Helmet security headers (CSP, HSTS, X-Frame-Options)
-- Rate limiting on login and send endpoints
-- Session fixation protection
+- helmet security headers (CSP, HSTS, X-Frame-Options)
+- rate limiting on login and send endpoints
+- session fixation protection
 - CSRF protection via Origin header validation and SameSite strict cookies
-- Server-side input validation on all user-submitted fields
+- server-side input validation on all user-submitted fields
 
-## Project structure
+## project structure
 
 ```
 rtidhonbe/
@@ -102,16 +102,16 @@ rtidhonbe/
 └── package.json
 ```
 
-## Security
+## security
 
 rti dhonbe is designed with security as a priority. See the FAQ on the [live site](https://rtidhonbe.com) for user-facing security information.
 
-If you find a security vulnerability, please report it to **rtidhonbe@proton.me**.
+if you find a security vulnerability, please report it to **rtidhonbe@proton.me**.
 
-## Disclaimer
+## disclaimer
 
 rti dhonbe is not affiliated with, endorsed by, or associated with ICOM or the Government of the Maldives. It is an independent, community-built tool.
 
-## License
+## license
 
 [MIT](LICENSE)
