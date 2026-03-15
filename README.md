@@ -110,7 +110,7 @@ if you find a security vulnerability, please report it to **rtidhonbe@proton.me*
 
 ## disclaimer
 
-rti dhonbe is not affiliated with, endorsed by, or associated with ICOM or the Government of the Maldives. It is an independent, community-built tool.
+rti dhonbe is not affiliated with, endorsed by, or associated with ICOM or the Government of the Maldives. It is an independent, third-party tool.
 
 ## license
 
