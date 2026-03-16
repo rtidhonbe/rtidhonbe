@@ -11,7 +11,6 @@ document.querySelector('.header-logo')?.addEventListener('click', () => navigate
 let institutions    = [];
 let selected        = new Set();
 let customVarVals   = {};
-let previewOpen     = false;
 let activeDropLabel = null;
 let allRequests     = [];
 let reqFilter       = 'all';
@@ -37,7 +36,8 @@ function getRti() { return $('rti-body').value; }
 
 function renderText(text, inst) {
   let out = text.replace(/\{\{RECIPIENT_NAME\}\}/g, inst.name);
-  for (const [k, v] of Object.entries(customVarVals)) {
+  const instVars = customVarVals[inst._id] || {};
+  for (const [k, v] of Object.entries(instVars)) {
     const safeK = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     out = out.replace(new RegExp(`\\{\\{${safeK}\\}\\}`, 'gi'), v);
   }
@@ -183,7 +183,7 @@ function refreshVars() {
   wrap.innerHTML = html;
 }
 
-// ── Custom variable inputs + collapsible preview ─────────────────────────────
+// ── Per-institution variable rows + expandable preview ───────────────────────
 function refreshPreview() {
   const text = getRti().trim();
   const wrap = $('preview-wrap');
@@ -192,69 +192,69 @@ function refreshPreview() {
   const customVars = text ? detectVars(text).filter(v => !BUILTIN.has(v)) : [];
   if (!customVars.length || !selectedInsts.length) { wrap.style.display = 'none'; return; }
 
-  // ── Var input fields (shared across all institutions) ──
   let html = `<div class="vars-label">custom_variables</div>`;
-  customVars.forEach(v => {
-    const val = (customVarVals[v] || '').replace(/"/g, '&quot;');
-    html += `<div class="var-row">
-      <span class="var-chip">{{${v}}}</span>
-      <input class="var-input cv-input" data-var="${v}" value="${val}"
-             placeholder="enter value for ${v}">
-    </div>`;
-  });
 
-  // ── Collapsible preview toggle ──
-  html += `<button class="preview-toggle" id="preview-toggle">${previewOpen ? '▾ hide preview' : '▸ show preview'}</button>`;
-
-  if (previewOpen) {
-    html += `<div class="preview-body">`;
-    const previewInst = selectedInsts[0];
-    if (selectedInsts.length > 1) {
-      html += `<select class="preview-select" id="preview-select">`;
-      selectedInsts.forEach((inst, i) => {
-        html += `<option value="${i}">${escHtml(inst.name)}</option>`;
-      });
-      html += `</select>`;
-    } else {
-      html += `<div class="preview-inst-name">${escHtml(previewInst.name)}</div>`;
-    }
-    html += `<div class="preview-text" id="preview-text">${escHtml(renderText(text, previewInst))}</div>`;
+  selectedInsts.forEach(inst => {
+    const iid = inst._id;
+    const instVars = customVarVals[iid] || {};
+    html += `<div class="pv-row" data-pv-id="${iid}">`;
+    html += `<div class="pv-head" data-pv-toggle="${iid}">`;
+    html += `<span class="pv-arrow" id="pv-arrow-${iid}">▸</span>`;
+    html += `<span class="pv-name">${escHtml(inst.name)}</span>`;
     html += `</div>`;
-  }
+
+    // var inputs inline
+    html += `<div class="pv-vars">`;
+    customVars.forEach(v => {
+      const val = (instVars[v] || '').replace(/"/g, '&quot;');
+      html += `<div class="var-row">
+        <span class="var-chip">{{${v}}}</span>
+        <input class="var-input cv-input" data-var="${v}" data-inst="${iid}" value="${val}"
+               placeholder="${v}">
+      </div>`;
+    });
+    html += `</div>`;
+
+    // expandable preview text (hidden by default)
+    html += `<div class="pv-preview" id="pv-preview-${iid}" style="display:none">`;
+    html += `<div class="preview-text" data-preview="${iid}">${escHtml(renderText(text, inst))}</div>`;
+    html += `</div>`;
+    html += `</div>`;
+  });
 
   wrap.innerHTML = html;
   wrap.style.display = 'block';
 
-  // ── Var input listeners ──
+  // var input listeners
   wrap.querySelectorAll('.cv-input').forEach(el => {
     el.addEventListener('input', function() {
-      customVarVals[this.dataset.var] = this.value;
-      updatePreviewText();
+      const iid = this.dataset.inst;
+      if (!customVarVals[iid]) customVarVals[iid] = {};
+      customVarVals[iid][this.dataset.var] = this.value;
+      const box = wrap.querySelector(`[data-preview="${iid}"]`);
+      const inst = institutions.find(i => i._id === iid);
+      if (box && inst) box.textContent = renderText(getRti().trim(), inst);
     });
   });
 
-  // ── Toggle listener ──
-  $('preview-toggle').addEventListener('click', () => {
-    previewOpen = !previewOpen;
-    refreshPreview();
+  // expand/collapse preview toggle per row
+  wrap.querySelectorAll('[data-pv-toggle]').forEach(el => {
+    el.addEventListener('click', function() {
+      const iid = this.dataset.pvToggle;
+      const preview = $(`pv-preview-${iid}`);
+      const arrow = $(`pv-arrow-${iid}`);
+      if (!preview) return;
+      const open = preview.style.display !== 'none';
+      preview.style.display = open ? 'none' : 'block';
+      arrow.textContent = open ? '▸' : '▾';
+      // refresh preview text when opening
+      if (!open) {
+        const box = wrap.querySelector(`[data-preview="${iid}"]`);
+        const inst = institutions.find(i => i._id === iid);
+        if (box && inst) box.textContent = renderText(getRti().trim(), inst);
+      }
+    });
   });
-
-  // ── Institution select listener ──
-  const sel = $('preview-select');
-  if (sel) {
-    sel.addEventListener('change', () => updatePreviewText());
-  }
-}
-
-function updatePreviewText() {
-  const box = $('preview-text');
-  if (!box) return;
-  const text = getRti().trim();
-  const selectedInsts = institutions.filter(i => selected.has(i._id));
-  const sel = $('preview-select');
-  const idx = sel ? parseInt(sel.value) : 0;
-  const inst = selectedInsts[idx];
-  if (inst) box.textContent = renderText(text, inst);
 }
 
 // ── Event bindings (compose) ──────────────────────────────────────────────────
@@ -549,7 +549,6 @@ function closeModal() {
   $('rti-body').value = '';
   selected.clear();
   customVarVals = {};
-  previewOpen = false;
   $('vars-wrap').innerHTML = '';
   $('preview-wrap').innerHTML = '';
   $('preview-wrap').style.display = 'none';

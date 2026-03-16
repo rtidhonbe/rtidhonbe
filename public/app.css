@@ -216,24 +216,20 @@
 
     /* ── Preview wrap ── */
     .preview-wrap { margin-top: 14px; }
-    .preview-toggle {
-      background: none; border: 1px solid var(--border2); border-radius: 4px;
-      color: var(--text-muted); font-size: 11px; font-family: inherit;
-      padding: 5px 12px; margin-top: 8px; cursor: pointer;
-      transition: color .2s, border-color .2s;
+    .pv-row {
+      border: 1px solid var(--border2); border-radius: 4px;
+      margin-bottom: 8px; overflow: hidden;
     }
-    .preview-toggle:hover { color: var(--green); border-color: var(--green-dim); }
-    .preview-body { margin-top: 10px; }
-    .preview-select {
-      width: 100%; padding: 6px 10px; font-size: 12px; font-family: inherit;
-      background: var(--bg); color: var(--text); border: 1px solid var(--border2);
-      border-radius: 4px; outline: none; margin-bottom: 8px;
+    .pv-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; cursor: pointer;
+      transition: background .15s;
     }
-    .preview-select:focus { border-color: var(--green); }
-    .preview-inst-name {
-      font-size: 11px; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
-    }
+    .pv-head:hover { background: var(--surface2); }
+    .pv-arrow { font-size: 10px; color: var(--text-muted); width: 12px; }
+    .pv-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .pv-vars { padding: 0 12px 10px; }
+    .pv-preview { padding: 0 12px 10px; }
     .preview-text {
       background: var(--surface2); border: 1px solid var(--border2);
       border-radius: 4px; padding: 10px 14px; font-size: 12px;
