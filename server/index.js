@@ -47,7 +47,7 @@ app.use('/api', (req, res, next) => {
   const origin = req.headers.origin;
   if (!origin) return res.status(403).json({ error: 'Forbidden' });
   const host = req.headers.host;
-  if (!origin.startsWith(`https://${host}`) && !origin.startsWith(`http://${host}`)) {
+  if (origin !== `https://${host}` && origin !== `http://${host}`) {
     return res.status(403).json({ error: 'Forbidden' });
   }
   next();

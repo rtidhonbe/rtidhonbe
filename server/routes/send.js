@@ -29,20 +29,23 @@ router.post('/', requireAuth, sendLimiter, async (req, res) => {
     return res.status(400).json({ error: 'No payloads provided' });
   }
 
+  // Fetch institution list to resolve IDs → names (before streaming, so we can return JSON errors)
+  let institutions;
+  try {
+    institutions = await fetchInstitutions(req.session.token);
+  } catch (e) {
+    return res.status(502).json({ error: 'Failed to fetch institutions' });
+  }
+
+  if (payloads.length > institutions.length) {
+    return res.status(400).json({ error: `Too many payloads (max ${institutions.length})` });
+  }
+
   // Stream NDJSON back so the frontend can show live progress
   res.setHeader('Content-Type', 'application/x-ndjson');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
-
-  // Fetch institution list to resolve IDs → names
-  let institutions;
-  try {
-    institutions = await fetchInstitutions(req.session.token);
-  } catch (e) {
-    res.write(JSON.stringify({ type: 'error', error: 'Failed to fetch institutions' }) + '\n');
-    return res.end();
-  }
 
   for (let i = 0; i < payloads.length; i++) {
     let { institutionId, applicant, details, dryRun } = payloads[i];
