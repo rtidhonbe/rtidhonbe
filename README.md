@@ -6,11 +6,11 @@ built for citizens, journalists, and civil society organisations who use RTI reg
 
 ## features
 
-- **saved profiles** -- store your name, phone, and address so every request is pre-filled and ready to send in seconds
 - **bulk RTI** -- send the same request to multiple government institutions at once
 - **request tracking** -- view all your submitted requests and their status in one place, pulled live from ICOM
+- **saved profiles** -- store your name, phone, and address so every request is pre-filled and ready to send in seconds
 - **guest mode** -- file one-time requests without creating a profile
-- **template variables** -- use `{{RECIPIENT_NAME}}` and custom placeholders to personalise requests per institution
+- **template variables** -- use `{{RECIPIENT_NAME}}` and custom placeholders using `{{VARIABLENAME}}` to personalise requests per institution
 
 ## how it works
 
