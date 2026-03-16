@@ -100,9 +100,9 @@ app.use('/api/my-requests',  requestsRoutes);
 app.use('/api/profiles',     profilesRoutes);
 
 // ── Page routes ───────────────────────────────────────────────────────────────
-app.get('/login',    (_, res) => res.sendFile(path.join(__dirname, '../public/login.html')));
-app.get('/home',     (_, res) => res.sendFile(path.join(__dirname, '../public/app.html')));
-app.get('/profiles', (_, res) => res.sendFile(path.join(__dirname, '../public/profile.html')));
+app.get('/login',    (req, res) => { if (req.session?.token) return res.redirect('/home'); res.type('html'); res.sendFile(path.join(__dirname, '../public/login.html')); });
+app.get('/home',     (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/app.html')); });
+app.get('/profiles', (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/profile.html')); });
 
 // Redirect old .html URLs
 app.get('/login.html',   (_, res) => res.redirect(301, '/login'));
