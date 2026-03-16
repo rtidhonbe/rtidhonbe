@@ -1,6 +1,6 @@
 # rti dhonbe
 
-free, open-source tool for filing Right to Information requests in the Maldives via the [ICOM Mahoali](https://icom.mv) portal.
+free open source software for filing Right to Information requests in the Maldives via the [ICOM Mahoali](https://icom.mv) portal.
 
 built for citizens, journalists, and civil society organisations who use RTI regularly.
 
