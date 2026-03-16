@@ -28,9 +28,6 @@ router.post('/', requireAuth, sendLimiter, async (req, res) => {
   if (!Array.isArray(payloads) || payloads.length === 0) {
     return res.status(400).json({ error: 'No payloads provided' });
   }
-  if (payloads.length > 50) {
-    return res.status(400).json({ error: 'Too many payloads (max 50)' });
-  }
 
   // Stream NDJSON back so the frontend can show live progress
   res.setHeader('Content-Type', 'application/x-ndjson');
