@@ -11,7 +11,7 @@ document.querySelector('.header-logo')?.addEventListener('click', () => navigate
 let institutions    = [];
 let selected        = new Set();
 let customVarVals   = {};
-let previewInstId   = null;
+let previewOpen     = false;
 let activeDropLabel = null;
 let allRequests     = [];
 let reqFilter       = 'all';
@@ -37,8 +37,7 @@ function getRti() { return $('rti-body').value; }
 
 function renderText(text, inst) {
   let out = text.replace(/\{\{RECIPIENT_NAME\}\}/g, inst.name);
-  const instVars = customVarVals[inst._id] || {};
-  for (const [k, v] of Object.entries(instVars)) {
+  for (const [k, v] of Object.entries(customVarVals)) {
     const safeK = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     out = out.replace(new RegExp(`\\{\\{${safeK}\\}\\}`, 'gi'), v);
   }
@@ -155,6 +154,7 @@ function renderList(list) {
 function toggle(id, checked) {
   if (checked) selected.add(id); else selected.delete(id);
   renderList(getFiltered());
+  refreshPreview();
   refreshCount();
 }
 
@@ -183,48 +183,78 @@ function refreshVars() {
   wrap.innerHTML = html;
 }
 
-// ── Per-institution preview ────────────────────────────────────────────────────
+// ── Custom variable inputs + collapsible preview ─────────────────────────────
 function refreshPreview() {
   const text = getRti().trim();
   const wrap = $('preview-wrap');
   const selectedInsts = institutions.filter(i => selected.has(i._id));
-  if (!text || !selectedInsts.length) { wrap.style.display = 'none'; return; }
 
-  const customVars = detectVars(text).filter(v => !BUILTIN.has(v));
-  if (!customVars.length) { wrap.style.display = 'none'; return; }
+  const customVars = text ? detectVars(text).filter(v => !BUILTIN.has(v)) : [];
+  if (!customVars.length || !selectedInsts.length) { wrap.style.display = 'none'; return; }
 
-  let html = '';
-  selectedInsts.forEach(inst => {
-    const instVars = customVarVals[inst._id] || {};
-    const isActive = inst._id === previewInstId;
-    html += `<div class="preview-card${isActive ? ' active' : ''}">`;
-    html += `<div class="preview-card-head">${escHtml(inst.name)}</div>`;
-    html += `<div class="preview-card-vars">`;
-    customVars.forEach(v => {
-      const val = (instVars[v] || '').replace(/"/g, '&quot;');
-      html += `<div class="var-row">
-        <span class="var-chip">{{${v}}}</span>
-        <input class="var-input preview-var-input" data-var="${v}" data-inst="${inst._id}" value="${val}">
-      </div>`;
-    });
-    html += `</div>`;
-    html += `<div class="preview-text" data-preview="${inst._id}">${escHtml(renderText(text, inst))}</div>`;
-    html += `</div>`;
+  // ── Var input fields (shared across all institutions) ──
+  let html = `<div class="vars-label">custom_variables</div>`;
+  customVars.forEach(v => {
+    const val = (customVarVals[v] || '').replace(/"/g, '&quot;');
+    html += `<div class="var-row">
+      <span class="var-chip">{{${v}}}</span>
+      <input class="var-input cv-input" data-var="${v}" value="${val}"
+             placeholder="enter value for ${v}">
+    </div>`;
   });
+
+  // ── Collapsible preview toggle ──
+  html += `<button class="preview-toggle" id="preview-toggle">${previewOpen ? '▾ hide preview' : '▸ show preview'}</button>`;
+
+  if (previewOpen) {
+    html += `<div class="preview-body">`;
+    const previewInst = selectedInsts[0];
+    if (selectedInsts.length > 1) {
+      html += `<select class="preview-select" id="preview-select">`;
+      selectedInsts.forEach((inst, i) => {
+        html += `<option value="${i}">${escHtml(inst.name)}</option>`;
+      });
+      html += `</select>`;
+    } else {
+      html += `<div class="preview-inst-name">${escHtml(previewInst.name)}</div>`;
+    }
+    html += `<div class="preview-text" id="preview-text">${escHtml(renderText(text, previewInst))}</div>`;
+    html += `</div>`;
+  }
 
   wrap.innerHTML = html;
-  wrap.style.display = 'flex';
+  wrap.style.display = 'block';
 
-  wrap.querySelectorAll('.preview-var-input').forEach(el => {
+  // ── Var input listeners ──
+  wrap.querySelectorAll('.cv-input').forEach(el => {
     el.addEventListener('input', function() {
-      const iid = this.dataset.inst;
-      if (!customVarVals[iid]) customVarVals[iid] = {};
-      customVarVals[iid][this.dataset.var] = this.value;
-      const box  = wrap.querySelector(`[data-preview="${iid}"]`);
-      const inst = institutions.find(i => i._id === iid);
-      if (box && inst) box.textContent = renderText(getRti().trim(), inst);
+      customVarVals[this.dataset.var] = this.value;
+      updatePreviewText();
     });
   });
+
+  // ── Toggle listener ──
+  $('preview-toggle').addEventListener('click', () => {
+    previewOpen = !previewOpen;
+    refreshPreview();
+  });
+
+  // ── Institution select listener ──
+  const sel = $('preview-select');
+  if (sel) {
+    sel.addEventListener('change', () => updatePreviewText());
+  }
+}
+
+function updatePreviewText() {
+  const box = $('preview-text');
+  if (!box) return;
+  const text = getRti().trim();
+  const selectedInsts = institutions.filter(i => selected.has(i._id));
+  const sel = $('preview-select');
+  const idx = sel ? parseInt(sel.value) : 0;
+  const inst = selectedInsts[idx];
+  if (inst) box.textContent = renderText(text, inst);
 }
 
 // ── Event bindings (compose) ──────────────────────────────────────────────────
@@ -232,13 +262,14 @@ $('rti-body').addEventListener('input', () => {
   const el = $('rti-body');
   if (el.value.length > 5000) el.value = el.value.slice(0, 5000);
   refreshVars();
+  refreshPreview();
   refreshCount();
 });
 $('search').addEventListener('input', () => renderList(getFiltered()));
 
-$('btn-all').addEventListener('click', () => { institutions.forEach(i => selected.add(i._id)); renderList(getFiltered()); });
-$('btn-none').addEventListener('click', () => { selected.clear(); renderList(getFiltered()); });
-$('btn-filtered').addEventListener('click', () => { getFiltered().forEach(i => selected.add(i._id)); renderList(getFiltered()); });
+$('btn-all').addEventListener('click', () => { institutions.forEach(i => selected.add(i._id)); renderList(getFiltered()); refreshPreview(); });
+$('btn-none').addEventListener('click', () => { selected.clear(); renderList(getFiltered()); refreshPreview(); });
+$('btn-filtered').addEventListener('click', () => { getFiltered().forEach(i => selected.add(i._id)); renderList(getFiltered()); refreshPreview(); });
 $('btn-refresh').addEventListener('click', loadRequests);
 
 // ── Preset bar ────────────────────────────────────────────────────────────────
@@ -518,8 +549,10 @@ function closeModal() {
   $('rti-body').value = '';
   selected.clear();
   customVarVals = {};
-  previewInstId = null;
+  previewOpen = false;
   $('vars-wrap').innerHTML = '';
+  $('preview-wrap').innerHTML = '';
+  $('preview-wrap').style.display = 'none';
   renderList(getFiltered());
   refreshCount();
 }
