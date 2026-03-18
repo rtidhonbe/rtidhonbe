@@ -41,6 +41,12 @@ app.use(helmet({
   },
 }));
 
+// ── No-cache for API responses ────────────────────────────────────────────────
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+
 // ── CSRF: reject cross-origin state-changing requests ─────────────────────────
 app.use('/api', (req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();

@@ -84,6 +84,11 @@ router.post('/', requireAuth, sendLimiter, async (req, res) => {
       res.write(JSON.stringify({ type: 'result', name: inst.name, success: false, error: 'Invalid address (1-200 characters)', dryRun }) + '\n');
       continue;
     }
+    const aLabel = applicant?.label ? String(applicant.label).trim() : '';
+    if (aLabel && !/^[a-z0-9_-]+$/.test(aLabel)) {
+      res.write(JSON.stringify({ type: 'result', name: inst.name, success: false, error: 'Invalid label', dryRun }) + '\n');
+      continue;
+    }
 
     const payload = {
       language:         'en',
@@ -108,7 +113,7 @@ router.post('/', requireAuth, sendLimiter, async (req, res) => {
     try {
       const result  = await submitRTI(req.session.token, payload);
       const reqId   = result?.data?._id || result?._id;
-      if (reqId && applicant?.label) storeLabel(req.session.email, reqId, applicant.label);
+      if (reqId && aLabel) storeLabel(req.session.email, reqId, aLabel);
       logSubmission(inst.name);
       res.write(JSON.stringify({ type: 'result', name: inst.name, success: true, dryRun: false }) + '\n');
     } catch (e) {

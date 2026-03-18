@@ -660,6 +660,7 @@ function renderRequestsTable() {
         <div class="doc-link-label">documents</div>
         ${docFiles.map(f => {
           const url  = f.url || f.fileUrl || f.link;
+          if (!/^https?:\/\//i.test(url)) return '';
           const name = f.name || f.fileName || f.title || url.split('/').pop() || 'document';
           return `<a class="doc-link-item" href="${escHtml(url)}" target="_blank" rel="noopener noreferrer">&#128196; ${escHtml(name)}</a>`;
         }).join('')}
