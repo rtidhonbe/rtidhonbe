@@ -16,8 +16,8 @@ const { sendLimiter }                    = require('../middleware/rateLimit');
 const { storeLabel }                     = require('../lib/labelStore');
 const { logSubmission }                  = require('../lib/submissionLog');
 
-const DELAY_MIN = parseInt(process.env.DELAY_MIN_MS || '4000', 10);
-const DELAY_MAX = parseInt(process.env.DELAY_MAX_MS || '9000', 10);
+const DELAY_MIN = parseInt(process.env.DELAY_MIN_MS || '3000', 10);
+const DELAY_MAX = parseInt(process.env.DELAY_MAX_MS || '5000', 10);
 
 const sleep       = (ms) => new Promise(r => setTimeout(r, ms));
 const randomDelay = () => sleep(DELAY_MIN + Math.random() * (DELAY_MAX - DELAY_MIN));
