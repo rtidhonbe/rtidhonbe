@@ -41,7 +41,7 @@ function renderFlairs(flairs) {
 
 // ── Load vault posts ────────────────────────────────────────────────────────
 async function loadVault(sort, time) {
-  currentSort = sort || 'top';
+  currentSort = sort || currentSort;
   if (currentSort === 'top') currentTime = time || 'today';
   let url = `/api/vault?sort=${currentSort}`;
   if (currentSort === 'top' && currentTime !== 'all') url += `&time=${currentTime}`;
