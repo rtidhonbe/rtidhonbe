@@ -12,6 +12,7 @@ const path      = require('path');
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 const sessionMiddleware = session({
+  name: '__sid',
   store: new FileStore({
     path:   path.join(__dirname, '../../data/sessions'),
     ttl:    30 * 24 * 60 * 60, // max session file lifetime in seconds (30 days)

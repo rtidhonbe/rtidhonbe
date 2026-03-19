@@ -47,7 +47,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 // POST /api/auth/logout
 router.post('/logout', requireAuth, (req, res) => {
   req.session.destroy(() => {
-    res.clearCookie('connect.sid');
+    res.clearCookie('__sid');
     res.json({ ok: true });
   });
 });

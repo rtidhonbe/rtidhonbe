@@ -74,3 +74,4 @@
 
     /* ── Create account link hover (replaces inline onmouseover) ── */
     .create-link:hover { text-decoration: underline; }
+    .btn-vault-browse:hover { background: rgba(0,204,85,.18) !important; box-shadow: 0 0 12px rgba(0,204,85,.2); }

@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>rti dhonbe</title>
+  <meta property="og:title" content="rti dhonbe">
+  <meta property="og:description" content="free open source software for submitting, tracking, and archiving RTIs">
+  <meta property="og:image" content="https://rtidhonbe.com/og-image.png">
+  <meta property="og:url" content="https://rtidhonbe.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://rtidhonbe.com/og-image.png">
   <link rel="icon" href="/favicon.png" type="image/png">
   <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
   <link rel="stylesheet" href="/app.css">
@@ -15,14 +22,15 @@
   <div class="header-logo">rti dhonbe</div>
   <div class="header-right">
     <span id="user-email"></span>
-    <button class="btn-disconnect" id="logout-btn">[ logout ]</button>
+    <button class="btn-disconnect" id="logout-btn">log out</button>
   </div>
 </header>
 
 <!-- Tab bar -->
 <nav class="tab-bar">
-  <button class="tab active" data-tab="compose">compose</button>
-  <button class="tab" data-tab="requests">my requests</button>
+  <button class="tab tab-vault" data-tab="vault">vault</button>
+  <button class="tab active" data-tab="compose">submit rti</button>
+  <button class="tab" data-tab="requests">my rtis</button>
   <button class="tab" data-tab="contact">faq</button>
 </nav>
 
@@ -57,9 +65,9 @@
           <input class="search-input" id="search" placeholder="search institutions..." type="text" autocomplete="off">
         </div>
         <div class="quick-btns">
-          <button class="qbtn" id="btn-all">select_all</button>
+          <button class="qbtn" id="btn-all">select all</button>
           <button class="qbtn" id="btn-none">clear</button>
-          <button class="qbtn" id="btn-filtered">select_filtered</button>
+          <button class="qbtn" id="btn-filtered">select filtered</button>
         </div>
         <div class="sel-count" id="sel-count"></div>
         <div class="inst-list" id="inst-list"><div class="empty-msg">loading...</div></div>
@@ -71,7 +79,7 @@
   <footer>
     <div class="footer-stat"><strong id="f-count">0</strong> selected</div>
     <div class="footer-mid">
-      <button class="btn btn-primary" id="btn-send" disabled>send_rtis</button>
+      <button class="btn btn-primary" id="btn-send" disabled>SEND RTIs</button>
     </div>
   </footer>
 </div>
@@ -133,7 +141,7 @@
 
     <div class="faq-card">
       <div class="faq-q">do you store my RTI messages?</div>
-      <div class="faq-a"><span class="faq-no">no.</span> your RTI message is sent directly to the government institution through Mahoali and is not saved by rti dhonbe. once it is submitted, it only exists on the government's systems — not ours.</div>
+      <div class="faq-a"><span class="faq-no">no.</span> your RTI message is sent directly to the government institution through Mahoali and is not saved by rti dhonbe. once it is submitted, it only exists on the government's systems — not ours. the only exception is if you choose to post it to the vault — in that case, a copy of the RTI details is stored on our server as part of your vault post.</div>
     </div>
 
     <div class="faq-card">
@@ -215,7 +223,7 @@
     <div class="pm-logo" style="margin-bottom:16px">add new profile</div>
     <div class="pm-field">
       <div class="pm-field-row">
-        <label class="pm-label">profile_name</label>
+        <label class="pm-label">profile name</label>
         <span class="pm-err" id="pm-err-label"></span>
       </div>
       <input type="text" id="pm-f-label" autocomplete="off">
@@ -223,7 +231,7 @@
     </div>
     <div class="pm-field">
       <div class="pm-field-row">
-        <label class="pm-label">full_name</label>
+        <label class="pm-label">full name</label>
         <span class="pm-err" id="pm-err-name"></span>
       </div>
       <input type="text" id="pm-f-name" autocomplete="off">
@@ -242,8 +250,16 @@
       </div>
       <input type="text" id="pm-f-address" autocomplete="off">
     </div>
-    <button class="pm-btn" id="pm-save-btn" disabled>[ save_and_use ]</button>
-    <button class="pm-btn-ghost" id="pm-done-btn" style="display:none">[ done ]</button>
+    <div class="pm-field">
+      <div class="pm-field-row">
+        <label class="pm-label">display email</label>
+        <span class="pm-err" id="pm-err-email"></span>
+      </div>
+      <input type="email" id="pm-f-email" maxlength="80" autocomplete="off">
+      <div class="pm-hint" style="color:var(--green)">(optional: this will be the email displayed to the RTI recipient. if you leave this blank, then the mahoali account email will be used)</div>
+    </div>
+    <button class="pm-btn" id="pm-save-btn" disabled>SAVE AND USE</button>
+    <button class="pm-btn-ghost" id="pm-done-btn" style="display:none">DONE</button>
   </div>
 </div>
 

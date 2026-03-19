@@ -13,6 +13,7 @@ router.get('/', requireAuth, async (req, res) => {
       const id = r._id || r.id;
       return id && labels[String(id)] ? { ...r, profileLabel: labels[String(id)] } : r;
     });
+    res.set('Cache-Control', 'no-store');
     res.json(tagged);
   } catch (e) {
     console.error('[requests] fetch failed:', e.response?.data?.message || e.message);

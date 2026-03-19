@@ -91,6 +91,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     const tab = btn.dataset.tab;
+    if (tab === 'vault') { window.location.href = '/vault'; return; }
     $('view-compose').style.display  = tab === 'compose'  ? 'flex' : 'none';
     $('view-requests').style.display = tab === 'requests' ? 'flex' : 'none';
     $('view-contact').style.display  = tab === 'contact'  ? 'flex' : 'none';
@@ -173,7 +174,7 @@ function refreshVars() {
   const autoVars = vars.filter(v => BUILTIN.has(v));
   if (!autoVars.length) { wrap.innerHTML = ''; return; }
 
-  let html = `<div class="vars-label">auto_variables</div>`;
+  let html = `<div class="vars-label">auto variables</div>`;
   autoVars.forEach(v => {
     html += `<div class="var-row">
       <span class="var-chip auto">{{${v}}}</span>
@@ -192,7 +193,7 @@ function refreshPreview() {
   const customVars = text ? detectVars(text).filter(v => !BUILTIN.has(v)) : [];
   if (!customVars.length || !selectedInsts.length) { wrap.style.display = 'none'; return; }
 
-  let html = `<div class="vars-label">custom_variables</div>`;
+  let html = `<div class="vars-label">custom variables</div>`;
 
   selectedInsts.forEach(inst => {
     const iid = inst._id;
@@ -270,7 +271,7 @@ $('search').addEventListener('input', () => renderList(getFiltered()));
 $('btn-all').addEventListener('click', () => { institutions.forEach(i => selected.add(i._id)); renderList(getFiltered()); refreshPreview(); });
 $('btn-none').addEventListener('click', () => { selected.clear(); renderList(getFiltered()); refreshPreview(); });
 $('btn-filtered').addEventListener('click', () => { getFiltered().forEach(i => selected.add(i._id)); renderList(getFiltered()); refreshPreview(); });
-$('btn-refresh').addEventListener('click', loadRequests);
+$('btn-refresh').addEventListener('click', () => loadRequests(true));
 
 // ── Preset bar ────────────────────────────────────────────────────────────────
 function renderPresetDetail(p) {
@@ -284,6 +285,7 @@ function renderPresetDetail(p) {
       <span class="pdl">phone</span><span class="pdv">${escHtml(p.phone)}</span>
       <span class="preset-detail-sep">·</span>
       <span class="pdl">address</span><span class="pdv">${escHtml(p.currentAddress || p.address || '—')}</span>
+      ${p.email ? `<span class="preset-detail-sep">·</span><span class="pdl">email</span><span class="pdv">${escHtml(p.email)}</span>` : ''}
       <button class="pd-edit-btn">edit</button>
     </div>
   `;
@@ -306,9 +308,14 @@ function showPresetEdit(p) {
         <span class="pd-edit-label">address</span>
         <input class="pd-edit-input" id="pde-address" value="${escHtml(p.currentAddress || p.address || '')}">
       </div>
+      <div class="pd-edit-row">
+        <span class="pd-edit-label">display email</span>
+        <input class="pd-edit-input" id="pde-email" maxlength="80" value="${escHtml(p.email || '')}">
+      </div>
       <span class="pde-err" id="pde-err-name"></span>
       <span class="pde-err" id="pde-err-phone"></span>
       <span class="pde-err" id="pde-err-address"></span>
+      <span class="pde-err" id="pde-err-email"></span>
       <div class="pd-edit-actions">
         <button class="btn btn-sm btn-ghost" id="pde-cancel">cancel</button>
         <button class="btn btn-sm btn-primary" id="pde-save">save</button>
@@ -318,21 +325,25 @@ function showPresetEdit(p) {
   detail.querySelector('#pde-name').addEventListener('input', () => { detail.querySelector('#pde-err-name').textContent = ''; });
   detail.querySelector('#pde-phone').addEventListener('input', () => { detail.querySelector('#pde-err-phone').textContent = ''; });
   detail.querySelector('#pde-address').addEventListener('input', () => { detail.querySelector('#pde-err-address').textContent = ''; });
+  detail.querySelector('#pde-email').addEventListener('input', () => { detail.querySelector('#pde-err-email').textContent = ''; });
   detail.querySelector('#pde-cancel').addEventListener('click', () => renderPresetDetail(p));
   detail.querySelector('#pde-save').addEventListener('click', () => {
     const name    = detail.querySelector('#pde-name').value.trim();
     const phone   = detail.querySelector('#pde-phone').value.trim();
     const address = detail.querySelector('#pde-address').value.trim();
+    const email   = detail.querySelector('#pde-email').value.trim();
     let valid = true;
     if (!name)              { detail.querySelector('#pde-err-name').textContent = 'required'; valid = false; }
     else if (name.length > 50) { detail.querySelector('#pde-err-name').textContent = 'max 50 characters'; valid = false; }
     if (!phone || !/^[0-9]{7}$/.test(phone)) { detail.querySelector('#pde-err-phone').textContent = 'must be 7 digits'; valid = false; }
     if (!address)           { detail.querySelector('#pde-err-address').textContent = 'required'; valid = false; }
     else if (address.length > 200) { detail.querySelector('#pde-err-address').textContent = 'max 200 characters'; valid = false; }
+    if (email && email.length > 80) { detail.querySelector('#pde-err-email').textContent = 'max 80 characters'; valid = false; }
+    else if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { detail.querySelector('#pde-err-email').textContent = 'invalid email'; valid = false; }
     if (!valid) return;
     const idx = profileData.presets.findIndex(x => x.label === p.label);
     if (idx !== -1) {
-      profileData.presets[idx] = { ...profileData.presets[idx], name, phone, currentAddress: address };
+      profileData.presets[idx] = { ...profileData.presets[idx], name, phone, currentAddress: address, email: email || '' };
       saveProfiles();
       renderPresetBar();
       renderPresetDetail(profileData.presets[idx]);
@@ -368,9 +379,10 @@ function renderPresetBar() {
 
   // Regular profile pills
   presets.forEach(p => {
+    const isActive = !isGuestMode && p.label === profileData.active;
     const chip = document.createElement('button');
-    chip.className = 'preset-chip' + (!isGuestMode && p.label === profileData.active ? ' active' : '');
-    chip.textContent = p.label;
+    chip.className = 'preset-chip' + (isActive ? ' active' : '');
+    chip.innerHTML = escHtml(p.label) + (isActive ? ' <svg class="chip-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' : '');
     chip.addEventListener('click', () => {
       const wasGuestBefore = isGuestMode;
       isGuestMode = false;
@@ -449,7 +461,8 @@ function getApplicant() {
     };
   }
   try {
-    return profileData.presets.find(p => p.label === profileData.active) || profileData.presets[0] || null;
+    const p = profileData.presets.find(p => p.label === profileData.active) || profileData.presets[0] || null;
+    return p;
   } catch { return null; }
 }
 
@@ -530,7 +543,7 @@ async function openSendModal(dryRun) {
   $('m-title').textContent     = dryRun ? `preview complete — ${total} requests` : `done — ${sent} sent, ${failed} failed`;
   $('m-sub').textContent       = '';
   $('btn-close').style.display = 'inline-block';
-  if (!dryRun && sent > 0) loadRequests();
+  if (!dryRun && sent > 0) loadRequests(true);
 }
 
 function addLogRow(ev) {
@@ -630,7 +643,7 @@ function renderRequestsTable() {
     dataRow.className = 'data-row';
     dataRow.innerHTML = `
       <td style="color:var(--text-dim);font-size:11px;text-align:right;padding-right:6px">${seqNum}</td>
-      <td><button class="expand-chevron" id="${btnId}" aria-label="Toggle details">▾</button></td>
+      <td><button class="expand-chevron" id="${btnId}" aria-label="Toggle details"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button></td>
       <td>${escHtml(instName)}</td>
       <td>${formatDate(r.createdDate)}</td>
       <td style="color:var(--text-muted);font-size:11px">${escHtml(alias)}</td>
@@ -671,7 +684,7 @@ function renderRequestsTable() {
       <td colspan="6">
         <div class="detail-inner">
           ${metaHtml}
-          <div class="detail-label">rti_message</div>
+          <div class="detail-label">rti message</div>
           ${msg
             ? `<div class="detail-text">${escHtml(msg)}</div>`
             : `<div class="detail-no-msg">no message content available.</div>`}
@@ -692,12 +705,13 @@ function renderRequestsTable() {
   });
 }
 
-async function loadRequests() {
+async function loadRequests(bustCache) {
   $('req-state').textContent   = 'loading...';
   $('req-state').style.display = 'block';
   $('req-table').style.display = 'none';
   try {
-    const res  = await fetch('/api/my-requests');
+    const opts = bustCache ? { cache: 'no-cache' } : {};
+    const res  = await fetch('/api/my-requests', opts);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'failed to load');
     const raw = Array.isArray(data) ? data : (data.data ?? []);
@@ -729,10 +743,12 @@ function openProfileModal() {
   $('pm-f-name').value    = '';
   $('pm-f-phone').value   = '';
   $('pm-f-address').value = '';
+  $('pm-f-email').value   = '';
   $('pm-err-label').textContent   = '';
   $('pm-err-name').textContent    = '';
   $('pm-err-phone').textContent   = '';
   $('pm-err-address').textContent = '';
+  $('pm-err-email').textContent   = '';
   $('pm-save-btn').disabled = true;
   $('profile-modal-overlay').classList.add('show');
 }
@@ -754,8 +770,8 @@ function renderPmPresets() {
     const item = document.createElement('div');
     item.className = 'pm-preset-item' + (p.label === active ? ' active' : '');
     item.innerHTML = `
-      <span class="pm-preset-name">${escHtml(p.label)}</span>
-      <span class="pm-preset-detail">${escHtml(p.name)} · ${escHtml(p.phone)}</span>
+      <span class="pm-preset-name">${escHtml(p.label)}${p.tag ? `<span class="pm-preset-tag">#${escHtml(p.tag)}</span>` : ''}</span>
+      <span class="pm-preset-detail">${escHtml(p.name)} · ${escHtml(p.phone)}${p.email ? ` · ${escHtml(p.email)}` : ''}</span>
       ${p.label === active ? '<span class="pm-active-badge">active</span>' : ''}
       <button class="pm-del" data-label="${escHtml(p.label)}">×</button>
     `;
@@ -788,7 +804,7 @@ $('pm-f-phone').addEventListener('input', function() {
   $('pm-err-phone').textContent = '';
   pmUpdateButtonState();
 });
-[['pm-f-label','pm-err-label'],['pm-f-name','pm-err-name'],['pm-f-address','pm-err-address']].forEach(([fid, eid]) => {
+[['pm-f-label','pm-err-label'],['pm-f-name','pm-err-name'],['pm-f-address','pm-err-address'],['pm-f-email','pm-err-email']].forEach(([fid, eid]) => {
   $(fid).addEventListener('input', () => { $(eid).textContent = ''; pmUpdateButtonState(); });
 });
 
@@ -803,6 +819,7 @@ $('pm-save-btn').addEventListener('click', async () => {
   if (!label)                              labelErr = 'required';
   else if (label.length > 10)              labelErr = 'max 10 characters';
   else if (!/^[a-z0-9_-]+$/.test(label))  labelErr = 'letters, numbers, - and _ only';
+  else if (label === 'anon' || label === 'anonymous' || label === 'rtidhonbe') labelErr = 'this name is not allowed';
   $('pm-err-label').textContent = labelErr;
   if (labelErr) valid = false;
 
@@ -827,10 +844,28 @@ $('pm-save-btn').addEventListener('click', async () => {
 
   if (!valid) return;
 
-  profileData.presets = profileData.presets.filter(p => p.label !== label);
-  profileData.presets.push({ label, name, phone, currentAddress: address });
+  const email = $('pm-f-email').value.trim();
+  if (email) {
+    if (email.length > 80) { $('pm-err-email').textContent = 'max 80 characters'; valid = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $('pm-err-email').textContent = 'invalid email'; valid = false; }
+  }
+  if (!valid) return;
+
+  // Block duplicate profile names
+  if (profileData.presets.some(p => p.label.toLowerCase() === label)) {
+    $('pm-err-label').textContent = 'you already have a profile with this name';
+    return;
+  }
+  if (profileData.presets.length >= 10) {
+    $('pm-err-label').textContent = 'maximum 10 profiles per account';
+    return;
+  }
+
+  profileData.presets.push({ label, name, phone, currentAddress: address, email: email || '' });
   profileData.active = label;
   await saveProfiles();
+  // Re-fetch to get server-generated tag
+  profileData = await fetch('/api/profiles').then(r => r.json());
   renderPresetBar();
   closeProfileModal();
 });
@@ -842,6 +877,18 @@ $('profile-modal-overlay').addEventListener('click', e => {
 });
 
 boot();
+
+// ── Handle ?tab= query param (e.g. from vault navigation) ───────────────────
+(function handleTabParam() {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab) {
+    const tabBtn = document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (tabBtn) tabBtn.click();
+    // Clean URL
+    history.replaceState(null, '', '/home');
+  }
+})();
 
 // ── Modal close button ────────────────────────────────────────────────────────
 $('btn-close').addEventListener('click', closeModal);
@@ -860,3 +907,4 @@ document.getElementById('logout-confirm').addEventListener('click', async () => 
   navigate('/login');
 });
 overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+

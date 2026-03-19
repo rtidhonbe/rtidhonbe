@@ -89,13 +89,17 @@ router.post('/', requireAuth, sendLimiter, async (req, res) => {
       res.write(JSON.stringify({ type: 'result', name: inst.name, success: false, error: 'Invalid label', dryRun }) + '\n');
       continue;
     }
+    // Use profile email if provided, otherwise fall back to session email
+    const aEmail = applicant?.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(applicant.email).trim())
+      ? String(applicant.email).trim()
+      : req.session.email;
 
     const payload = {
       language:         'en',
       delivery:         'digital copy',
       name:             aName,
       nameDv:           '',
-      email:            req.session.email,
+      email:            aEmail,
       phone:            aPhone,
       nationality:      'Maldivian',
       legalId:          '',

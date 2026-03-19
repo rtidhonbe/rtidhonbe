@@ -5,7 +5,7 @@ document.getElementById('beta-form').addEventListener('submit', async (e) => {
   const btn   = document.querySelector('.btn');
   if (!code) return;
   btn.disabled = true;
-  btn.textContent = '[ verifying... ]';
+  btn.textContent = 'VERIFYING...';
   errEl.style.display = 'none';
   try {
     const res  = await fetch('/beta', {
@@ -21,6 +21,6 @@ document.getElementById('beta-form').addEventListener('submit', async (e) => {
     errEl.textContent = err.message;
     errEl.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = '[ enter ]';
+    btn.textContent = 'ENTER';
   }
 });

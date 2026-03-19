@@ -14,6 +14,7 @@ const institutionsRoutes = require('./routes/institutions');
 const sendRoutes         = require('./routes/send');
 const requestsRoutes     = require('./routes/requests');
 const profilesRoutes     = require('./routes/profiles');
+const vaultRoutes        = require('./routes/vault');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -34,12 +35,19 @@ app.use(helmet({
     },
   },
   frameguard: { action: 'deny' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   hsts: {
     maxAge:            31536000,
     includeSubDomains: true,
     preload:           true,
   },
 }));
+
+// ── Allow cross-origin access to OG image for social media crawlers ──────────
+app.use('/og-image.png', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
 
 // ── No-cache for API responses ────────────────────────────────────────────────
 app.use('/api', (req, res, next) => {
@@ -73,12 +81,17 @@ app.use(sessionMiddleware);
 // ── Beta wall ─────────────────────────────────────────────────────────────────
 // To disable: remove BETA_PASSWORD from .env and restart.
 if (process.env.BETA_PASSWORD) {
-  const BETA_ALLOWED = new Set(['/beta.js', '/login.css', '/favicon.png', '/favicon.svg', '/robots.txt']);
+  const BETA_ALLOWED = new Set(['/beta.js', '/login.css', '/vault.css', '/vault.js', '/favicon.png', '/favicon.svg', '/robots.txt', '/og-image.png']);
   const { loginLimiter } = require('./middleware/rateLimit');
 
   app.get('/beta', (_, res) => res.sendFile(path.join(__dirname, '../public/beta.html')));
 
   app.post('/beta', loginLimiter, (req, res) => {
+    const origin = req.headers.origin;
+    if (!origin) return res.status(403).json({ error: 'Forbidden' });
+    try { if (new URL(origin).host !== req.headers.host) return res.status(403).json({ error: 'Forbidden' }); }
+    catch { return res.status(403).json({ error: 'Forbidden' }); }
+
     const { code } = req.body;
     if (!code || code !== process.env.BETA_PASSWORD) {
       return res.status(401).json({ error: 'incorrect access code' });
@@ -88,11 +101,14 @@ if (process.env.BETA_PASSWORD) {
   });
 
   app.use((req, res, next) => {
-    if (req.path === '/beta' || req.path.startsWith('/api/') || BETA_ALLOWED.has(req.path)) return next();
+    if (req.path === '/beta' || req.path === '/' || req.path === '/faq' || req.path.startsWith('/vault') || req.path.startsWith('/api/') || BETA_ALLOWED.has(req.path)) return next();
     if (req.session?.betaAccess) return next();
     res.redirect('/beta');
   });
 }
+
+// ── Redirect logged-in users from landing to home ────────────────────────────
+app.get('/', (req, res, next) => { if (req.session?.token) return res.redirect('/home'); next(); });
 
 // ── Static frontend ───────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, '../public')));
@@ -104,20 +120,35 @@ app.use('/api/institutions', institutionsRoutes);
 app.use('/api/send',         sendRoutes);
 app.use('/api/my-requests',  requestsRoutes);
 app.use('/api/profiles',     profilesRoutes);
+app.use('/api/vault',        vaultRoutes);
+
+// Auth status check (used by vault to show login/app link)
+app.get('/api/auth/status', (req, res) => {
+  res.json({ loggedIn: !!req.session?.token, email: req.session?.email || null });
+});
 
 // ── Page routes ───────────────────────────────────────────────────────────────
 app.get('/login',    (req, res) => { if (req.session?.token) return res.redirect('/home'); res.type('html'); res.sendFile(path.join(__dirname, '../public/login.html')); });
-app.get('/home',     (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/app.html')); });
+app.get('/home',     (req, res) => { if (!req.session?.token) return res.redirect('/login'); res.type('html'); res.sendFile(path.join(__dirname, '../public/app.html')); });
 app.get('/profiles', (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/profile.html')); });
+
+// Vault pages (public)
+app.get('/vault',      (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/vault.html')); });
+app.get('/vault/:id',  (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/vault.html')); });
+
+// FAQ (public)
+app.get('/faq', (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/faq.html')); });
 
 // Redirect old .html URLs
 app.get('/login.html',   (_, res) => res.redirect(301, '/login'));
 app.get('/app.html',     (_, res) => res.redirect(301, '/home'));
 app.get('/profile.html', (_, res) => res.redirect(301, '/profiles'));
 
-// Root — redirect based on session
+// Root — landing page or redirect to app if logged in
 app.get('/', (req, res) => {
-  res.redirect(req.session?.token ? '/home' : '/login');
+  if (req.session?.token) return res.redirect('/home');
+  res.type('html');
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Catch-all — 404 page

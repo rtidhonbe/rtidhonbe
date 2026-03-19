@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vault — rti dhonbe</title>
+  <meta property="og:title" content="rti dhonbe">
+  <meta property="og:description" content="free open source software for submitting, tracking, and archiving RTIs">
+  <meta property="og:image" content="https://rtidhonbe.com/og-image.png">
+  <meta property="og:url" content="https://rtidhonbe.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://rtidhonbe.com/og-image.png">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/vault.css">
+</head>
+<body>
+
+<!-- Logged-out header -->
+<header id="header-anon">
+  <a href="/" class="header-logo" style="text-decoration:none;color:var(--green)">rti dhonbe <span style="color:#00cc55;text-shadow:0 0 12px rgba(0,204,85,.35)">/ vault</span></a>
+  <div class="header-right">
+    <a href="/login" style="font-size:11px;color:var(--text-muted);text-decoration:none;border:1px solid var(--border2);padding:4px 12px;border-radius:4px;font-weight:600;font-family:inherit;letter-spacing:.5px;transition:all .15s">sign in</a>
+  </div>
+</header>
+
+<!-- Logged-in header (hidden by default) -->
+<header id="header-auth" style="display:none">
+  <div class="header-logo" id="vault-logo-auth" style="cursor:pointer">rti dhonbe <span style="color:#00cc55;text-shadow:0 0 12px rgba(0,204,85,.35)">/ vault</span></div>
+  <div class="header-right">
+    <span id="vault-user-email" style="font-size:11px;color:var(--text-muted)"></span>
+    <button class="btn-disconnect" id="vault-logout-btn">log out</button>
+  </div>
+</header>
+
+<!-- Logged-out tab bar -->
+<nav class="tab-bar" id="tabs-anon">
+  <a href="/vault" class="tab tab-vault active" style="text-decoration:none">vault</a>
+  <a href="/login" class="tab" style="text-decoration:none">submit rti</a>
+  <a href="/login" class="tab" style="text-decoration:none">my rtis</a>
+  <a href="/faq" class="tab" style="text-decoration:none">faq</a>
+</nav>
+
+<!-- Logged-in tab bar (hidden by default) -->
+<nav class="tab-bar" id="tabs-auth" style="display:none">
+  <a href="/vault" class="tab tab-vault active" style="text-decoration:none">vault</a>
+  <a href="/home" class="tab" style="text-decoration:none">submit rti</a>
+  <a href="/home?tab=requests" class="tab" style="text-decoration:none">my rtis</a>
+  <a href="/home?tab=contact" class="tab" style="text-decoration:none">faq</a>
+</nav>
+
+<!-- Sort bar -->
+<div class="vault-sort-bar" id="vault-sort-bar">
+  <div class="sort-dropdown" id="sort-dropdown">
+    <button class="sort-toggle" id="sort-toggle">NEW <span class="chevron">▾</span></button>
+    <div class="sort-menu" id="sort-menu">
+      <button class="sort-option" data-sort="top">TOP</button>
+      <button class="sort-option active" data-sort="new">NEW</button>
+    </div>
+  </div>
+  <div class="sort-dropdown" id="time-dropdown" style="display:none">
+    <button class="sort-toggle" id="time-toggle">TODAY <span class="chevron">▾</span></button>
+    <div class="sort-menu" id="time-menu">
+      <button class="sort-option active" data-time="today">TODAY</button>
+      <button class="sort-option" data-time="week">THIS WEEK</button>
+      <button class="sort-option" data-time="month">THIS MONTH</button>
+      <button class="sort-option" data-time="year">THIS YEAR</button>
+      <button class="sort-option" data-time="all">ALL TIME</button>
+    </div>
+  </div>
+  <div class="sort-dropdown" id="flair-dropdown">
+    <button class="sort-toggle" id="flair-toggle">FILTER <span class="chevron">▾</span></button>
+    <div class="sort-menu flair-menu" id="flair-menu"></div>
+  </div>
+  <div class="vault-search-wrap" id="vault-search-wrap">
+    <div class="search-flair-pills" id="search-flair-pills"></div>
+    <input type="text" class="vault-search" id="vault-search" placeholder="search vault..." autocomplete="off">
+  </div>
+  <button class="new-post-btn" id="my-posts-btn">MY POSTS</button>
+  <button class="new-post-btn" id="new-post-btn">NEW POST</button>
+</div>
+
+<!-- List view -->
+<div id="vault-index">
+  <div class="vault-list" id="vault-list"></div>
+</div>
+
+<!-- Single post view (hidden by default) -->
+<div id="vault-post" style="display:none">
+  <div class="vault-post">
+    <a href="#" class="vault-post-back" id="post-back"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+    <div class="vault-post-meta" id="post-meta-top">
+      <span class="vault-row-author" id="post-author"></span>
+      <span class="vault-row-dot">•</span>
+      <span class="vault-row-time" id="post-date"></span>
+    </div>
+    <div class="vault-post-title" id="post-title"></div>
+    <div class="vault-post-description" id="post-description"></div>
+    <div id="post-flairs"></div>
+    <div id="post-requests"></div>
+    <div class="vault-post-footer">
+      <button class="pill-btn heart-btn" id="post-heart-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <span class="heart-count" id="post-heart-count">0</span>
+      </button>
+      <div class="share-wrapper">
+        <button class="pill-btn share-btn" id="post-share-btn">
+          <svg viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 6 12 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="2" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="share-label">Share</span>
+        </button>
+        <div class="share-dropdown" id="post-share-dropdown">
+          <button class="share-dropdown-item" id="post-copy-link">Copy link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New post modal -->
+<div class="vault-modal-overlay" id="modal-overlay" style="display:none">
+  <div class="vault-modal">
+    <div class="vault-modal-header">
+      <span class="vault-modal-title">NEW POST</span>
+      <button class="vault-modal-close" id="modal-close">✕</button>
+    </div>
+
+    <label class="vault-modal-label">TITLE</label>
+    <input type="text" id="modal-title" maxlength="200" placeholder="give your post a title..." autocomplete="off">
+    <div class="modal-char-count"><span id="modal-title-count">0</span>/200</div>
+
+    <label class="vault-modal-label">DESCRIPTION</label>
+    <textarea id="modal-description" placeholder="describe your post..." rows="3" autocomplete="off"></textarea>
+    <div class="modal-char-count"><span id="modal-desc-count">0</span>/500</div>
+
+    <label class="vault-modal-label">SELECT RTIs <span style="font-weight:400;color:var(--text-dim);font-size:10px">(only processed RTIs can be posted)</span></label>
+    <input type="text" id="modal-rti-search" placeholder="search rtis..." autocomplete="off" class="modal-search">
+    <div class="rti-selection-bar" id="rti-selection-bar">
+      <span class="sel-count"></span>
+      <div class="sel-actions">
+        <button type="button" class="sel-btn" id="sel-filtered-btn">Select Filtered</button>
+        <button type="button" class="sel-btn" id="sel-clear-btn">Clear</button>
+      </div>
+    </div>
+    <table class="rti-select-table" id="modal-rti-list">
+      <tbody id="modal-rti-tbody">
+        <tr><td colspan="3"><div class="vault-empty" style="padding:20px">loading rtis...</div></td></tr>
+      </tbody>
+    </table>
+
+    <div class="remarks-section" id="remarks-section" style="display:none">
+      <label class="vault-modal-label">REMARKS</label>
+      <div id="remarks-list"></div>
+    </div>
+
+    <div class="display-name-section" id="display-name-section" style="display:none">
+      <label class="vault-modal-label">DISPLAY NAME</label>
+      <div class="vault-profile-pills" id="vault-profile-pills"></div>
+      <div class="display-name-options" id="display-name-options"></div>
+    </div>
+
+    <div class="modal-error" id="modal-error" style="display:none"></div>
+    <button class="btn-submit-post" id="modal-submit">POST TO VAULT</button>
+  </div>
+</div>
+
+<!-- My Posts modal -->
+<div class="vault-modal-overlay" id="myposts-overlay" style="display:none">
+  <div class="vault-modal">
+    <div class="vault-modal-header">
+      <span class="vault-modal-title">MY POSTS</span>
+      <button class="vault-modal-close" id="myposts-close">✕</button>
+    </div>
+    <div id="myposts-list"></div>
+  </div>
+</div>
+
+<!-- Edit Post modal -->
+<div class="vault-modal-overlay" id="edit-overlay" style="display:none">
+  <div class="vault-modal">
+    <div class="vault-modal-header">
+      <span class="vault-modal-title">EDIT POST</span>
+      <button class="vault-modal-close" id="edit-close">✕</button>
+    </div>
+
+    <label class="vault-modal-label">TITLE</label>
+    <input type="text" id="edit-title" maxlength="200" autocomplete="off">
+    <div class="modal-char-count"><span id="edit-title-count">0</span>/200</div>
+
+    <label class="vault-modal-label">DESCRIPTION</label>
+    <textarea id="edit-description" rows="3" autocomplete="off"></textarea>
+    <div class="modal-char-count"><span id="edit-desc-count">0</span>/500</div>
+
+    <div id="edit-time-warning" class="edit-time-warning" style="display:none"></div>
+
+    <label class="vault-modal-label">EXISTING RTIs</label>
+    <div class="edit-existing-rtis" id="edit-existing-rtis"></div>
+
+    <label class="vault-modal-label">ADD RTIs</label>
+    <input type="text" id="edit-rti-search" placeholder="search rtis..." autocomplete="off" class="modal-search">
+    <div class="rti-selection-bar" id="edit-selection-bar">
+      <span class="sel-count" id="edit-sel-count"></span>
+      <div class="sel-actions">
+        <button type="button" class="sel-btn" id="edit-sel-filtered-btn">Select Filtered</button>
+        <button type="button" class="sel-btn" id="edit-sel-clear-btn">Clear</button>
+      </div>
+    </div>
+    <table class="rti-select-table" id="edit-rti-list">
+      <tbody id="edit-rti-tbody">
+        <tr><td colspan="3"><div class="vault-empty" style="padding:20px">loading rtis...</div></td></tr>
+      </tbody>
+    </table>
+
+    <div class="remarks-section" id="edit-remarks-section" style="display:none">
+      <label class="vault-modal-label">REMARKS FOR NEW RTIs</label>
+      <div id="edit-remarks-list"></div>
+    </div>
+
+    <div class="modal-error" id="edit-error" style="display:none"></div>
+    <div class="edit-actions">
+      <button class="btn-delete-post" id="edit-delete">DELETE POST</button>
+      <button class="btn-submit-post" id="edit-save">SAVE CHANGES</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="vault-toast" id="vault-toast"></div>
+
+<script src="/vault.js"></script>
+</body>
+</html>

@@ -36,4 +36,23 @@ const apiLimiter = rateLimit({
   message:          { error: 'Too many requests — slow down' },
 });
 
-module.exports = { loginLimiter, sendLimiter, apiLimiter };
+// Vault write limiter — caps post creation and upvote toggling
+const vaultWriteLimiter = rateLimit({
+  windowMs:         60 * 60 * 1000, // 1 hour
+  max:              30,              // 30 vault writes per hour
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  keyGenerator:     (req) => req.session?.id || req.ip,
+  message:          { error: 'Vault rate limit reached — try again later' },
+});
+
+const vaultUpvoteLimiter = rateLimit({
+  windowMs:         60 * 60 * 1000, // 1 hour
+  max:              60,              // 60 upvote toggles per hour
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  keyGenerator:     (req) => req.session?.id || req.ip,
+  message:          { error: 'Too many upvotes — slow down' },
+});
+
+module.exports = { loginLimiter, sendLimiter, apiLimiter, vaultWriteLimiter, vaultUpvoteLimiter };

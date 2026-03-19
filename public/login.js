@@ -10,7 +10,7 @@
     const btn      = document.getElementById('btn');
     const errEl    = document.getElementById('error');
     if (!email || !password) return;
-    btn.disabled = true; btn.textContent = '[ connecting... ]';
+    btn.disabled = true; btn.textContent = 'CONNECTING...';
     errEl.style.display = 'none';
     try {
       const rememberMe = document.getElementById('remember').checked;
@@ -26,6 +26,6 @@
     } catch (e) {
       errEl.textContent = e.message;
       errEl.style.display = 'block';
-      btn.disabled = false; btn.textContent = '[ sign_in ]';
+      btn.disabled = false; btn.textContent = 'SIGN IN';
     }
   });

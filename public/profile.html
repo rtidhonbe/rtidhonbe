@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.png" type="image/png">
   <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
-  <title>profiles</title>
+  <title>profiles — rti dhonbe</title>
+  <meta property="og:title" content="rti dhonbe">
+  <meta property="og:description" content="free open source software for submitting, tracking, and archiving RTIs">
+  <meta property="og:image" content="https://rtidhonbe.com/og-image.png">
+  <meta property="og:url" content="https://rtidhonbe.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://rtidhonbe.com/og-image.png">
   <link rel="stylesheet" href="/profile.css">
 </head>
 <body>
@@ -21,7 +28,7 @@
 
   <div class="field">
     <div class="field-label-row">
-      <label>profile_name</label>
+      <label>profile name</label>
       <span class="field-error" id="err-label"></span>
     </div>
     <input type="text" id="f-label" autocomplete="off">
@@ -29,7 +36,7 @@
   </div>
   <div class="field">
     <div class="field-label-row">
-      <label>full_name</label>
+      <label>full name</label>
       <span class="field-error" id="err-name"></span>
     </div>
     <input type="text" id="f-name" autocomplete="off">
@@ -48,10 +55,18 @@
     </div>
     <input type="text" id="f-address" autocomplete="off">
   </div>
+  <div class="field">
+    <div class="field-label-row">
+      <label>display email</label>
+      <span class="field-error" id="err-email"></span>
+    </div>
+    <input type="email" id="f-email" maxlength="80" autocomplete="off">
+    <div class="hint" style="color:var(--green)">(optional: this will be the email displayed to the RTI recipient. if you leave this blank, then the mahoali account email will be used)</div>
+  </div>
 
-  <button class="btn" id="save-btn" disabled>[ save_and_use ]</button>
-  <button class="btn btn-ghost" id="skip-btn" style="display:none">[ continue_with_selected ]</button>
-  <button class="btn btn-guest" id="guest-btn" style="display:none">[ enter_as_guest ]</button>
+  <button class="btn" id="save-btn" disabled>SAVE AND USE</button>
+  <button class="btn btn-ghost" id="skip-btn" style="display:none">CONTINUE WITH SELECTED</button>
+  <button class="btn btn-guest" id="guest-btn" style="display:none">ENTER AS GUEST</button>
 </div>
 
 <script src="/profile.js"></script>

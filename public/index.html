@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rti dhonbe</title>
+  <meta property="og:title" content="rti dhonbe">
+  <meta property="og:description" content="free open source software for submitting, tracking, and archiving RTIs">
+  <meta property="og:image" content="https://rtidhonbe.com/og-image.png">
+  <meta property="og:url" content="https://rtidhonbe.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://rtidhonbe.com/og-image.png">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+  <link rel="stylesheet" href="/login.css">
+  <style>
+    .landing-card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 6px; padding: 48px 40px; width: 420px; max-width: calc(100vw - 32px);
+      box-shadow: 0 0 40px rgba(0,204,85,.08);
+      text-align: center;
+    }
+    .landing-card .logo { font-size: 24px; margin-bottom: 10px; }
+    .landing-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 36px; line-height: 1.6; }
+    .landing-btns { display: flex; flex-direction: column; gap: 12px; }
+    .btn-vault {
+      width: 100%; padding: 12px; border: 1px solid #00994d;
+      background: rgba(0,204,85,.1); color: #00cc55;
+      border-radius: 3px; font-size: 12px; font-weight: 700;
+      font-family: inherit; letter-spacing: .5px; text-transform: uppercase;
+      cursor: pointer; transition: all .15s;
+      box-shadow: 0 0 10px rgba(0,204,85,.12);
+      text-decoration: none; display: block;
+    }
+    .btn-vault:hover { background: rgba(0,204,85,.2); box-shadow: 0 0 16px rgba(0,204,85,.25); }
+    .btn-login {
+      width: 100%; padding: 12px; border: 1px solid var(--green);
+      background: var(--green-dim); color: var(--green);
+      border-radius: 3px; font-size: 12px; font-weight: 700;
+      font-family: inherit; letter-spacing: .5px; text-transform: uppercase;
+      cursor: pointer; transition: all .15s;
+      box-shadow: 0 0 10px var(--green-glow2);
+      text-decoration: none; display: block;
+    }
+    .btn-login:hover { background: rgba(0,204,85,.2); box-shadow: 0 0 16px var(--green-glow); }
+    .landing-footer {
+      font-size: 10px; color: var(--text-dim); margin-top: 24px; line-height: 1.5;
+    }
+    @media (max-width: 600px) {
+      .landing-card { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="landing-card">
+  <div class="logo">rti dhonbe</div>
+  <div class="landing-sub">free open source software for submitting, tracking, and archiving RTIs</div>
+  <div class="landing-btns">
+    <a href="/vault" class="btn-vault">BROWSE THE VAULT</a>
+    <a href="/login" class="btn-login">SIGN IN TO FILE RTI</a>
+  </div>
+  <div class="landing-footer">* rti dhonbe is not affiliated with, endorsed by, or associated with ICOM or the Maldives government.</div>
+</div>
+</body>
+</html>

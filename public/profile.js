@@ -36,7 +36,7 @@
       const item = document.createElement('div');
       item.className = 'preset-item' + (p.label === active ? ' active' : '');
       item.innerHTML = `
-        <span class="preset-name">${escHtml(p.label)}</span>
+        <span class="preset-name">${escHtml(p.label)}${p.tag ? `<span class="preset-tag">#${escHtml(p.tag)}</span>` : ''}</span>
         <span class="preset-detail">${escHtml(p.name)} · ${escHtml(p.phone)}</span>
         ${p.label === active ? '<span class="active-badge">active</span>' : ''}
         <button class="preset-del" data-label="${escHtml(p.label)}">×</button>
@@ -87,6 +87,9 @@
     document.getElementById('err-address').textContent = '';
     updateButtonState();
   });
+  document.getElementById('f-email').addEventListener('input', () => {
+    document.getElementById('err-email').textContent = '';
+  });
 
   // ── Save ─────────────────────────────────────────────────────────────────────
   document.getElementById('save-btn').addEventListener('click', async () => {
@@ -101,6 +104,7 @@
     if (!label)                              labelErr = 'required';
     else if (label.length > 10)              labelErr = 'max 10 characters';
     else if (!/^[a-z0-9_-]+$/.test(label))  labelErr = 'letters, numbers, - and _ only';
+    else if (label === 'anon' || label === 'anonymous' || label === 'rtidhonbe') labelErr = 'this name is not allowed';
     document.getElementById('err-label').textContent = labelErr;
     if (labelErr) valid = false;
 
@@ -125,8 +129,23 @@
 
     if (!valid) return;
 
-    profileData.presets = profileData.presets.filter(p => p.label !== label);
-    profileData.presets.push({ label, name, phone, currentAddress: address });
+    const email = document.getElementById('f-email').value.trim();
+    if (email) {
+      if (email.length > 80) { document.getElementById('err-email').textContent = 'max 80 characters'; valid = false; }
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-email').textContent = 'invalid email'; valid = false; }
+    }
+    if (!valid) return;
+
+    if (profileData.presets.some(p => p.label.toLowerCase() === label)) {
+      document.getElementById('err-label').textContent = 'you already have a profile with this name';
+      return;
+    }
+    if (profileData.presets.length >= 10) {
+      document.getElementById('err-label').textContent = 'maximum 10 profiles per account';
+      return;
+    }
+
+    profileData.presets.push({ label, name, phone, currentAddress: address, email: email || '' });
     profileData.active = label;
     await saveProfiles();
     window.location.href = '/home';
