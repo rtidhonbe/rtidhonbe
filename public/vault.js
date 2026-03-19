@@ -1243,7 +1243,7 @@ function showModalError(msg) {
   if (match) {
     viewPost(match[1]);
   } else {
-    loadVault('top', 'today');
+    loadVault(currentSort, currentTime);
   }
 
   // Show correct header based on auth
