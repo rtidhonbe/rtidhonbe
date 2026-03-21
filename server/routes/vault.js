@@ -265,7 +265,7 @@ router.put('/:id', requireAuth, vaultWriteLimiter, (req, res) => {
 
   if (title !== undefined) {
     if (!withinHour) return res.status(400).json({ error: 'Title can only be edited within 1 hour of posting' });
-    if (typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 70) {
+    if (typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 80) {
       return res.status(400).json({ error: 'Invalid title' });
     }
     updates.push('title = ?');
@@ -313,6 +313,10 @@ router.put('/:id', requireAuth, vaultWriteLimiter, (req, res) => {
     tx();
   }
 
+  // Invalidate OG image cache on edit
+  const cachePath = path.join(ogCacheDir, `${post.id}.png`);
+  if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
+
   res.json({ ok: true });
 });
 
@@ -326,7 +330,7 @@ router.post('/', requireAuth, vaultWriteLimiter, (req, res) => {
 
   const { title, description, requests, displayAs, displayProfile } = req.body;
 
-  if (!title || typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 70) {
+  if (!title || typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 80) {
     return res.status(400).json({ error: 'Title is required (max 200 characters)' });
   }
 
@@ -413,6 +417,100 @@ router.post('/:id/upvote', requireAuth, vaultUpvoteLimiter, (req, res) => {
   if (!post) return res.status(404).json({ error: 'Post not found' });
   const result = toggleVote(req.params.id, req.session.email);
   res.json(result);
+});
+
+// ── OG image generation ─────────────────────────────────────────────────────
+const { Resvg } = require('@resvg/resvg-js');
+
+const ogTemplatePath = path.join(__dirname, '../og-template.png');
+const ogTemplateBase64 = fs.existsSync(ogTemplatePath)
+  ? fs.readFileSync(ogTemplatePath).toString('base64') : null;
+
+const fontBoldPath = path.join(__dirname, '../fonts/Aptos-Mono-Bold.ttf');
+const fontRegularPath = path.join(__dirname, '../fonts/Aptos-Mono.ttf');
+const fontBold = fs.existsSync(fontBoldPath) ? fs.readFileSync(fontBoldPath) : null;
+const fontRegular = fs.existsSync(fontRegularPath) ? fs.readFileSync(fontRegularPath) : null;
+
+const ogCacheDir = path.join(__dirname, '../../data/og-cache');
+if (!fs.existsSync(ogCacheDir)) fs.mkdirSync(ogCacheDir, { recursive: true });
+
+function wrapText(text, charsPerLine, maxLines) {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (test.length > charsPerLine) {
+      if (line) lines.push(line);
+      if (lines.length >= maxLines) break;
+      line = word.length > charsPerLine ? word.slice(0, charsPerLine) : word;
+    } else {
+      line = test;
+    }
+  }
+  if (line && lines.length < maxLines) lines.push(line);
+  if (lines.length === maxLines && lines[maxLines - 1].length > charsPerLine - 3) {
+    lines[maxLines - 1] = lines[maxLines - 1].slice(0, charsPerLine - 3) + '...';
+  }
+  return lines;
+}
+
+function generateOgImage(title, description) {
+  if (!ogTemplateBase64 || !fontBold || !fontRegular) return null;
+
+  const titleLines = wrapText(title, 46, 2);
+  const titleLineHeight = 46;
+  const titleY = 232;
+
+  const descY = titleLines.length === 1 ? 290 : 340;
+  const descLines = wrapText(description || '', 67, 6);
+  const descLineHeight = 32;
+
+  let textSvg = '';
+  titleLines.forEach((line, i) => {
+    const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    textSvg += `<text x="83" y="${titleY + i * titleLineHeight}" font-family="Aptos Mono" font-weight="700" font-size="36" fill="#00cc55">${escaped}</text>`;
+  });
+  descLines.forEach((line, i) => {
+    const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    textSvg += `<text x="83" y="${descY + i * descLineHeight}" font-family="Aptos Mono" font-size="25" fill="#026600">${escaped}</text>`;
+  });
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630">
+    <image href="data:image/png;base64,${ogTemplateBase64}" width="1200" height="630"/>
+    ${textSvg}
+  </svg>`;
+
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: 'width', value: 1200 },
+    font: { fontBuffers: [fontBold, fontRegular], loadSystemFonts: false },
+  });
+  return resvg.render().asPng();
+}
+
+router.get('/:id/og.png', (req, res) => {
+  const postId = req.params.id;
+  if (!/^[a-f0-9]{16}$/.test(postId)) return res.status(400).json({ error: 'Invalid ID' });
+  const cachePath = path.join(ogCacheDir, `${postId}.png`);
+
+  if (fs.existsSync(cachePath)) {
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    return res.sendFile(cachePath);
+  }
+
+  const post = db.prepare('SELECT title, description FROM vault_posts WHERE id = ?').get(postId);
+  if (!post) return res.status(404).json({ error: 'Not found' });
+
+  const png = generateOgImage(post.title, post.description || '');
+  if (!png) return res.status(500).json({ error: 'OG generation unavailable' });
+
+  fs.writeFileSync(cachePath, png);
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.send(png);
 });
 
 // ── Auth: delete own post ───────────────────────────────────────────────────

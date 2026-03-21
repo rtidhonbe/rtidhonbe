@@ -2,7 +2,7 @@
 
 // ── SQLite database ────────────────────────────────────────────────────────────
 // Single shared better-sqlite3 instance used by all server modules.
-// Database file lives at data/mahoali.db
+// Database file lives at data/mahoali.db (same directory as old JSON files).
 
 const Database = require('better-sqlite3');
 const path     = require('path');

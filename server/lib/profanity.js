@@ -14,27 +14,26 @@ function loadWordlist(filename) {
   } catch { return []; }
 }
 
-const allWords = [
+const badWords = new Set([
   ...loadWordlist('engbadwords.txt'),
   ...loadWordlist('dhibadwords.txt'),
-];
+]);
 
-// Build regex: match whole words, case-insensitive
-// Catches basic evasion: repeated chars (fuuuck), separators between letters (f.u.c.k)
-const patterns = allWords.map(word => {
-  const flexed = word.split('').map(ch => {
-    const escaped = ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return `${escaped}+`;
-  }).join('[\\s.*_-]*');
-  return flexed;
-});
-
-const profanityRegex = new RegExp(`(?:^|\\b|\\s)(${patterns.join('|')})(?:\\b|\\s|$)`, 'i');
+// Normalize: lowercase, collapse repeated chars, strip separators
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .replace(/[\s.*_\-]/g, '')       // strip separators
+    .replace(/(.)\1+/g, '$1');       // collapse repeated chars (fuuuck → fuck)
+}
 
 function containsProfanity(...texts) {
   for (const text of texts) {
     if (!text || typeof text !== 'string') continue;
-    if (profanityRegex.test(text)) return true;
+    const normalized = normalize(text);
+    for (const word of badWords) {
+      if (normalized.includes(word)) return true;
+    }
   }
   return false;
 }

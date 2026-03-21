@@ -48,6 +48,10 @@ app.use('/og-image.png', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
 });
+app.use('/og-card.png', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
 
 // ── No-cache for API responses ────────────────────────────────────────────────
 app.use('/api', (req, res, next) => {
@@ -81,7 +85,7 @@ app.use(sessionMiddleware);
 // ── Beta wall ─────────────────────────────────────────────────────────────────
 // To disable: remove BETA_PASSWORD from .env and restart.
 if (process.env.BETA_PASSWORD) {
-  const BETA_ALLOWED = new Set(['/beta.js', '/login.css', '/vault.css', '/vault.js', '/favicon.png', '/favicon.svg', '/robots.txt', '/og-image.png']);
+  const BETA_ALLOWED = new Set(['/beta.js', '/login.css', '/vault.css', '/vault.js', '/favicon.png', '/favicon.svg', '/robots.txt', '/og-image.png', '/og-card.png']);
   const { loginLimiter } = require('./middleware/rateLimit');
 
   app.get('/beta', (_, res) => res.sendFile(path.join(__dirname, '../public/beta.html')));
@@ -124,7 +128,8 @@ app.use('/api/vault',        vaultRoutes);
 
 // Auth status check (used by vault to show login/app link)
 app.get('/api/auth/status', (req, res) => {
-  res.json({ loggedIn: !!req.session?.token, email: req.session?.email || null });
+  const loggedIn = !!req.session?.token;
+  res.json({ loggedIn, ...(loggedIn && { email: req.session.email }) });
 });
 
 // ── Page routes ───────────────────────────────────────────────────────────────
@@ -134,10 +139,30 @@ app.get('/profiles', (_, res) => { res.type('html'); res.sendFile(path.join(__di
 
 // Vault pages (public)
 app.get('/vault',      (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/vault.html')); });
-app.get('/vault/:id',  (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/vault.html')); });
+app.get('/vault/:id',  (req, res) => {
+  const db = require('./lib/db');
+  const post = db.prepare('SELECT title, description FROM vault_posts WHERE id = ?').get(req.params.id);
+  const vaultHtml = require('fs').readFileSync(path.join(__dirname, '../public/vault.html'), 'utf8');
+  if (post) {
+    const ogImg = `https://rtidhonbe.com/api/vault/${req.params.id}/og.png`;
+    const injected = vaultHtml
+      .replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="From the vault on RTI Dhonbe">`)
+      .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="Explore this post and more on our archive of information requests">`)
+      .replace(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${ogImg}">`)
+      .replace(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="https://rtidhonbe.com/vault/${req.params.id}">`)
+      .replace(/<meta property="og:type"[^>]*>/, `<meta property="og:type" content="website"><meta property="og:site_name" content="RTI Dhonbe">`)
+      .replace(/<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${ogImg}">`);
+    res.type('html').send(injected);
+  } else {
+    res.type('html').send(vaultHtml);
+  }
+});
 
 // FAQ (public)
 app.get('/faq', (_, res) => { res.type('html'); res.sendFile(path.join(__dirname, '../public/faq.html')); });
+
+// Welcome — alternative landing URL for fresh social previews
+app.get('/welcome', (req, res) => { if (req.session?.token) return res.redirect('/home'); res.type('html'); res.sendFile(path.join(__dirname, '../public/index.html')); });
 
 // Redirect old .html URLs
 app.get('/login.html',   (_, res) => res.redirect(301, '/login'));
