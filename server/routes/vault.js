@@ -265,7 +265,7 @@ router.put('/:id', requireAuth, vaultWriteLimiter, (req, res) => {
 
   if (title !== undefined) {
     if (!withinHour) return res.status(400).json({ error: 'Title can only be edited within 1 hour of posting' });
-    if (typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 200) {
+    if (typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 70) {
       return res.status(400).json({ error: 'Invalid title' });
     }
     updates.push('title = ?');
@@ -326,7 +326,7 @@ router.post('/', requireAuth, vaultWriteLimiter, (req, res) => {
 
   const { title, description, requests, displayAs, displayProfile } = req.body;
 
-  if (!title || typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 200) {
+  if (!title || typeof title !== 'string' || title.trim().length === 0 || title.trim().length > 70) {
     return res.status(400).json({ error: 'Title is required (max 200 characters)' });
   }
 
