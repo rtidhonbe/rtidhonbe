@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const express  = require('express');
 const helmet   = require('helmet');
+const crypto   = require('crypto');
 const path     = require('path');
 
 const { sessionMiddleware }    = require('./middleware/session');
@@ -97,7 +98,9 @@ if (process.env.BETA_PASSWORD) {
     catch { return res.status(403).json({ error: 'Forbidden' }); }
 
     const { code } = req.body;
-    if (!code || code !== process.env.BETA_PASSWORD) {
+    if (!code || typeof code !== 'string' ||
+        code.length !== process.env.BETA_PASSWORD.length ||
+        !crypto.timingSafeEqual(Buffer.from(code), Buffer.from(process.env.BETA_PASSWORD))) {
       return res.status(401).json({ error: 'incorrect access code' });
     }
     req.session.betaAccess = true;
@@ -129,7 +132,7 @@ app.use('/api/vault',        vaultRoutes);
 // Auth status check (used by vault to show login/app link)
 app.get('/api/auth/status', (req, res) => {
   const loggedIn = !!req.session?.token;
-  res.json({ loggedIn, ...(loggedIn && { email: req.session.email }) });
+  res.json({ loggedIn });
 });
 
 // ── Page routes ───────────────────────────────────────────────────────────────
